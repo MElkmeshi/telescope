@@ -26,7 +26,14 @@ function isTimed(property: string | symbol): property is TimedMethod
  * Both node-postgres and Neon's serverless Pool expose the same query()
  * surface, so one wrapper covers both drivers.
  */
-export function wrapPool<T extends object>(pool: T, telescope: Telescope): T
+export type TelescopeSource = Telescope | (() => Telescope | undefined)
+
+function resolve(source: TelescopeSource): Telescope | undefined
+{
+    return typeof source === 'function' ? source() : source
+}
+
+export function wrapPool<T extends object>(pool: T, telescope: TelescopeSource): T
 {
     return new Proxy(pool, {
         get(target, property, receiver) {
@@ -44,13 +51,20 @@ export function wrapPool<T extends object>(pool: T, telescope: Telescope): T
                 try {
                     return await (value as Function).apply(target, args)
                 } finally {
-                    const elapsed = Number(process.hrtime.bigint() - start) / 1_000_000
+                    // Pools are usually built at module load, before the app
+                    // (and so the Telescope instance) exists - hence the lazy
+                    // form. Nothing is recorded until it resolves.
+                    const instance = resolve(telescope)
 
-                    await QueryWatcher.record({
-                        ...describeQuery(args),
-                        time: Math.round(elapsed * 100) / 100,
-                        connection: 'drizzle',
-                    }, telescope.config)
+                    if (instance && instance.recording) {
+                        const elapsed = Number(process.hrtime.bigint() - start) / 1_000_000
+
+                        await QueryWatcher.record({
+                            ...describeQuery(args),
+                            time: Math.round(elapsed * 100) / 100,
+                            connection: 'drizzle',
+                        }, instance.config)
+                    }
                 }
             }
         },

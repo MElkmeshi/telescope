@@ -19,15 +19,9 @@ function isTimed(property) {
     return typeof property === 'string'
         && TIMED_METHODS.includes(property);
 }
-/**
- * Wraps the underlying pg/Neon pool. This is the seam that catches everything:
- * drizzle's query builder (db.select/insert/update/delete) executes through
- * client.query(), not through the db object's own methods, so wrapping `db`
- * alone captures only raw db.execute() calls.
- *
- * Both node-postgres and Neon's serverless Pool expose the same query()
- * surface, so one wrapper covers both drivers.
- */
+function resolve(source) {
+    return typeof source === 'function' ? source() : source;
+}
 export function wrapPool(pool, telescope) {
     return new Proxy(pool, {
         get(target, property, receiver) {
@@ -43,8 +37,14 @@ export function wrapPool(pool, telescope) {
                     return yield value.apply(target, args);
                 }
                 finally {
-                    const elapsed = Number(process.hrtime.bigint() - start) / 1000000;
-                    yield QueryWatcher.record(Object.assign(Object.assign({}, describeQuery(args)), { time: Math.round(elapsed * 100) / 100, connection: 'drizzle' }), telescope.config);
+                    // Pools are usually built at module load, before the app
+                    // (and so the Telescope instance) exists - hence the lazy
+                    // form. Nothing is recorded until it resolves.
+                    const instance = resolve(telescope);
+                    if (instance && instance.recording) {
+                        const elapsed = Number(process.hrtime.bigint() - start) / 1000000;
+                        yield QueryWatcher.record(Object.assign(Object.assign({}, describeQuery(args)), { time: Math.round(elapsed * 100) / 100, connection: 'drizzle' }), instance.config);
+                    }
                 }
             });
         },

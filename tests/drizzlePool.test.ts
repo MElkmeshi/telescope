@@ -66,3 +66,41 @@ describe('wrapPool', () => {
         expect(entry.content.bindings).toEqual([7])
     })
 })
+
+describe('wrapPool with a lazily-created telescope', () => {
+    beforeEach(async () => {
+        DB.configure(MemoryDriver)
+
+        await DB.truncate()
+    })
+
+    it('records nothing until the instance exists, then records', async () => {
+        let telescope: Telescope | undefined
+
+        const pool = wrapPool(fakeClient(), () => telescope) as any
+
+        await pool.query('select 1', [])
+
+        expect(await DB.queries().get(10)).toHaveLength(0)
+
+        telescope = Telescope.setup(express())
+
+        await pool.query('select 2', [])
+
+        const entries = await DB.queries().get(10)
+
+        expect(entries).toHaveLength(1)
+        expect(entries[0].content.sql).toBe('select 2')
+    })
+
+    it('stops recording while recording is paused', async () => {
+        const telescope = Telescope.setup(express())
+        const pool = wrapPool(fakeClient(), telescope) as any
+
+        telescope.recording = false
+
+        await pool.query('select 3', [])
+
+        expect(await DB.queries().get(10)).toHaveLength(0)
+    })
+})

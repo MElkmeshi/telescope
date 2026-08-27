@@ -8,5 +8,6 @@ import Telescope from "../api/Telescope.js";
  * Both node-postgres and Neon's serverless Pool expose the same query()
  * surface, so one wrapper covers both drivers.
  */
-export declare function wrapPool<T extends object>(pool: T, telescope: Telescope): T;
+export type TelescopeSource = Telescope | (() => Telescope | undefined);
+export declare function wrapPool<T extends object>(pool: T, telescope: TelescopeSource): T;
 export declare function wrapDrizzle<T extends object>(db: T, telescope: Telescope): T;
