@@ -136,4 +136,22 @@ describe('ClientRequestWatcher', () => {
 
         expect(entry).toBeUndefined()
     })
+
+    it('pairs each concurrent client request with its own response', async () => {
+        mock.onGet('https://example.test/slow').reply(() =>
+            new Promise(resolve => setTimeout(() => resolve([200, {which: 'slow'}]), 40)))
+
+        mock.onGet('https://example.test/fast').reply(200, {which: 'fast'})
+
+        await Promise.all([
+            axios.get('https://example.test/slow'),
+            axios.get('https://example.test/fast'),
+        ])
+
+        const entries = await DB.clientRequests().get(10)
+        const pairs = entries.map((entry: any) => [entry.content.uri, entry.content.response.which])
+
+        expect(pairs).toContainEqual(['https://example.test/slow', 'slow'])
+        expect(pairs).toContainEqual(['https://example.test/fast', 'fast'])
+    })
 })

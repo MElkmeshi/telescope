@@ -3,6 +3,7 @@ import WatcherEntry, {WatcherEntryCollectionType, WatcherEntryDataType} from "..
 import {hostname} from "os"
 import Telescope from "../Telescope.js"
 import JSONFileSyncAdapter from "../drivers/JSONFileSyncAdapter.js"
+import {currentBatchId} from "../context.js"
 
 export const LogLevel = {
     INFO: "info",
@@ -33,12 +34,9 @@ export default class LogWatcher
     public static entryType = WatcherEntryCollectionType.log
 
     private data: LogWatcherData
-    private batchId?: string
 
-    constructor(data: any[], level: LogLevel, batchId?: string)
+    constructor(data: any[], level: LogLevel)
     {
-        this.batchId = batchId
-
         this.data = {
             hostname: hostname(),
             level,
@@ -59,7 +57,7 @@ export default class LogWatcher
                 data[0] = data[0].split('[39m').join('')
             }
 
-            const watcher = new LogWatcher(data, LogLevel.INFO, telescope.batchId)
+            const watcher = new LogWatcher(data, LogLevel.INFO)
 
             watcher.save()
         }
@@ -69,7 +67,7 @@ export default class LogWatcher
         console.warn = (...data: any[]) => {
             oldWarn(...data)
 
-            const watcher = new LogWatcher(data, LogLevel.WARNING, telescope.batchId)
+            const watcher = new LogWatcher(data, LogLevel.WARNING)
 
             watcher.save()
         }
@@ -80,7 +78,7 @@ export default class LogWatcher
         console.error = (...data: any[]) => {
             oldError(...data)
 
-            const watcher = new LogWatcher(data, LogLevel.ERROR, telescope.batchId)
+            const watcher = new LogWatcher(data, LogLevel.ERROR)
 
             watcher.save()
         }
@@ -89,7 +87,7 @@ export default class LogWatcher
 
     public save()
     {
-        const entry = new LogWatcherEntry(this.data, this.batchId)
+        const entry = new LogWatcherEntry(this.data, currentBatchId())
 
         DB.logs().save(entry)
     }

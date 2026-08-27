@@ -3,6 +3,7 @@ import DB from "../DB.js"
 import WatcherEntry, {WatcherEntryCollectionType, WatcherEntryDataType} from "../WatcherEntry.js"
 import {hostname} from "os"
 import Telescope from "../Telescope.js"
+import {currentBatchId} from "../context.js"
 
 export type HeadersType = Record<string, string | number | boolean | string[] | null>
 
@@ -31,44 +32,31 @@ export default class ClientRequestWatcher
     public static entryType = WatcherEntryCollectionType.clientRequest
     public static ignoreUrls: string[] = []
 
-    private batchId?: string
     private request: AxiosRequestConfig
     private response: AxiosResponse
 
-    constructor(request: AxiosRequestConfig, response: AxiosResponse, batchId?: string)
+    constructor(request: AxiosRequestConfig, response: AxiosResponse)
     {
-        this.batchId = batchId
         this.request = request
         this.response = response
     }
 
     public static capture(telescope: Telescope)
     {
-        let request: AxiosRequestConfig | null = null
-
-        axios.interceptors.request.use((config) => {
-            request = config
-
-            return config
-        })
-
+        // axios threads the originating config through to both handlers, so
+        // there is no need to stash it between them - a shared slot would
+        // mispair concurrent calls.
         axios.interceptors.response.use(async (response) => {
-            if (request) {
-                const watcher = new ClientRequestWatcher(request, response, telescope.batchId)
+            const watcher = new ClientRequestWatcher(response.config, response)
 
-                !watcher.shouldIgnore() && await watcher.save()
-
-                request = null
-            }
+            !watcher.shouldIgnore() && await watcher.save()
 
             return response
         }, async (error: any) => {
-            if (request) {
-                const watcher = new ClientRequestWatcher(request, error.response, telescope.batchId)
+            if (error.config && error.response) {
+                const watcher = new ClientRequestWatcher(error.config, error.response)
 
                 !watcher.shouldIgnore() && await watcher.save()
-
-                request = null
             }
 
             return Promise.reject(error)
@@ -86,7 +74,7 @@ export default class ClientRequestWatcher
             response_status: this.response.status,
             response_headers: ClientRequestWatcher.normalizeHeaders(this.response.headers),
             response: this.isHtmlResponse() ? this.escapeHTML(this.response.data) : this.response.data
-        }, this.batchId)
+        }, currentBatchId())
 
         await DB.clientRequests().save(entry)
     }

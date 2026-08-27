@@ -4,6 +4,7 @@ import ClientRequestWatcher from "./watchers/ClientRequestWatcher.js"
 import LogWatcher from "./watchers/LogWatcher.js"
 import RequestWatcher, {GetUserFunction} from "./watchers/RequestWatcher.js"
 import {randomUUID} from "node:crypto"
+import {runWithContext} from "./context.js"
 import {WatcherEntryCollectionType} from "./WatcherEntry.js"
 import ErrorWatcher from "./watchers/ErrorWatcher.js"
 import DumpWatcher from "./watchers/DumpWatcher.js"
@@ -43,7 +44,6 @@ export default class Telescope
     ]
 
     public app: Express
-    public batchId?: string
 
     constructor(app: Express)
     {
@@ -62,12 +62,12 @@ export default class Telescope
         telescope.setUpStaticFiles()
 
         app.use((request, response, next) => {
-            telescope.batchId = randomUUID()
+            runWithContext({batchId: randomUUID()}, () => {
+                Telescope.enabledWatchers.includes(RequestWatcher)
+                && RequestWatcher.capture(request, response, options?.getUser)
 
-            Telescope.enabledWatchers.includes(RequestWatcher)
-            && RequestWatcher.capture(request, response, telescope.batchId, options?.getUser)
-
-            next()
+                next()
+            })
         })
 
         Telescope.enabledWatchers.includes(ClientRequestWatcher)

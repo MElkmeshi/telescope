@@ -1,5 +1,6 @@
 import WatcherEntry, {WatcherEntryCollectionType, WatcherEntryDataType} from "../WatcherEntry.js"
 import DB from "../DB.js"
+import {currentBatchId} from "../context.js"
 
 export interface DumpWatcherData
 {
@@ -8,9 +9,9 @@ export interface DumpWatcherData
 
 export class DumpWatcherEntry extends WatcherEntry<DumpWatcherData>
 {
-    constructor(data: DumpWatcherData)
+    constructor(data: DumpWatcherData, batchId?: string)
     {
-        super(WatcherEntryDataType.dumps, data)
+        super(WatcherEntryDataType.dumps, data, batchId)
     }
 }
 
@@ -35,7 +36,7 @@ export default class DumpWatcher
     {
         const entry = new DumpWatcherEntry({
             dump: this.data
-        })
+        }, currentBatchId())
 
         DB.dumps().save(entry)
     }

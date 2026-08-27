@@ -4,6 +4,7 @@ import DB from "../DB.js"
 import WatcherEntry, {WatcherEntryCollectionType, WatcherEntryDataType} from "../WatcherEntry.js"
 import {hostname} from "os"
 import JSONFileSyncAdapter from "../drivers/JSONFileSyncAdapter.js"
+import {currentBatchId} from "../context.js"
 
 export const HTTPMethod = {
     GET: "GET",
@@ -59,7 +60,6 @@ export default class RequestWatcher
     public static ignorePaths: string[] = []
     public static responseSizeLimit = 64
 
-    private batchId?: string
     private request: Request
     private response: Response
     public responseBody: any = ''
@@ -67,18 +67,17 @@ export default class RequestWatcher
     private getUser?: GetUserFunction
     public controllerAction?: string
 
-    constructor(request: Request, response: Response, batchId?: string, getUser?: GetUserFunction)
+    constructor(request: Request, response: Response, getUser?: GetUserFunction)
     {
-        this.batchId = batchId
         this.request = request
         this.response = response
         this.startTime = process.hrtime()
         this.getUser = getUser
     }
 
-    public static capture(request: Request, response: Response, batchId?: string, getUser?: GetUserFunction)
+    public static capture(request: Request, response: Response, getUser?: GetUserFunction)
     {
-        const watcher = new RequestWatcher(request, response, batchId, getUser)
+        const watcher = new RequestWatcher(request, response, getUser)
 
         if (watcher.shouldIgnore()) {
             return
@@ -162,7 +161,7 @@ export default class RequestWatcher
             response: this.responseBody,
             user: this.getUser ? (await this.getUser(this.request) ?? undefined) : undefined,
             controllerAction: this.controllerAction
-        }, this.batchId)
+        }, currentBatchId())
 
         await DB.requests().save(entry)
     }

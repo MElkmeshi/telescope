@@ -5,6 +5,7 @@ import WatcherEntry, {WatcherEntryCollectionType, WatcherEntryDataType} from "..
 import Telescope from "../Telescope.js"
 import {hostname} from "os"
 import StackUtils from "stack-utils"
+import {currentBatchId} from "../context.js"
 
 export interface ErrorWatcherData
 {
@@ -32,19 +33,17 @@ export default class ErrorWatcher
     public static ignoreErrors: ErrorConstructor[] = []
 
     private error: Error
-    private batchId?: string
 
-    constructor(error: Error, batchId?: string)
+    constructor(error: Error)
     {
         this.error = error
-        this.batchId = batchId
     }
 
     public static setup(telescope: Telescope)
     {
         telescope.app.use(async (error: Error, request: Request, response: Response, next: NextFunction) => {
             try{
-                const watcher = new ErrorWatcher(error, telescope.batchId)
+                const watcher = new ErrorWatcher(error)
 
                 if (watcher.shouldIgnore()) {
                     next(error)
@@ -63,7 +62,7 @@ export default class ErrorWatcher
         // catch async errors
         process
             .on('uncaughtException', async error => {
-                const watcher = new ErrorWatcher(error, telescope.batchId)
+                const watcher = new ErrorWatcher(error)
 
                 if (watcher.shouldIgnore()) {
                     return
@@ -100,7 +99,7 @@ export default class ErrorWatcher
             line: this.getFileInfo().line,
             line_preview: this.getLinePreview(),
             occurrences: (error?.content.occurrences ?? 0) + 1,
-        }, this.batchId)
+        }, currentBatchId())
 
         error ? await DB.errors().update(index, entry) : await DB.errors().save(entry)
     }
