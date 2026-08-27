@@ -1,7 +1,8 @@
-import DatabaseDriver, {WatcherData} from './api/drivers/DatabaseDriver.js'
+import DatabaseDriver, {DriverOptions, WatcherData} from './api/drivers/DatabaseDriver.js'
 import JSONFileSyncAdapter from './api/drivers/JSONFileSyncAdapter.js'
 import LowDriver from './api/drivers/LowDriver.js'
 import MemoryDriver from './api/drivers/MemoryDriver.js'
+import PostgresDriver, {PostgresDriverOptions, QueryablePool, schemaSql} from './api/drivers/PostgresDriver.js'
 
 import RequestWatcher, {RequestWatcherData, RequestWatcherEntry} from './api/watchers/RequestWatcher.js'
 import ClientRequestWatcher, {ClientRequestWatcherData, ClientRequestWatcherEntry, HeadersType} from './api/watchers/ClientRequestWatcher.js'
@@ -10,7 +11,7 @@ import DumpWatcher, {DumpWatcherData, DumpWatcherEntry} from './api/watchers/Dum
 import LogWatcher, {LogWatcherData, LogWatcherEntry} from './api/watchers/LogWatcher.js'
 
 import QueryWatcher, {QueryWatcherData, QueryWatcherEntry, RecordedQuery} from './api/watchers/QueryWatcher.js'
-import DB, {Driver} from './api/DB.js'
+import DB, {Driver, EntryFilter} from './api/DB.js'
 import Telescope, {ResolvedConfig, TelescopeOptions, Watcher} from './api/Telescope.js'
 import WatcherEntry, {WatcherEntryCollectionType, WatcherEntryDataType, WatcherType} from './api/WatcherEntry.js'
 
@@ -20,6 +21,8 @@ export {
     JSONFileSyncAdapter,
     LowDriver,
     MemoryDriver,
+    PostgresDriver,
+    schemaSql,
     RequestWatcher,
     RequestWatcherEntry,
     ClientRequestWatcher,
@@ -40,6 +43,10 @@ export {
 
 export type {
     DatabaseDriver,
+    DriverOptions,
+    PostgresDriverOptions,
+    QueryablePool,
+    EntryFilter,
     WatcherData,
     RequestWatcherData,
     ClientRequestWatcherData,

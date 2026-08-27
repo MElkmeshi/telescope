@@ -1,6 +1,7 @@
 import JSONFileSyncAdapter from './api/drivers/JSONFileSyncAdapter.js';
 import LowDriver from './api/drivers/LowDriver.js';
 import MemoryDriver from './api/drivers/MemoryDriver.js';
+import PostgresDriver, { schemaSql } from './api/drivers/PostgresDriver.js';
 import RequestWatcher, { RequestWatcherEntry } from './api/watchers/RequestWatcher.js';
 import ClientRequestWatcher, { ClientRequestWatcherEntry } from './api/watchers/ClientRequestWatcher.js';
 import ErrorWatcher, { ErrorWatcherEntry } from './api/watchers/ErrorWatcher.js';
@@ -11,4 +12,4 @@ import DB from './api/DB.js';
 import Telescope from './api/Telescope.js';
 import WatcherEntry, { WatcherEntryCollectionType, WatcherEntryDataType } from './api/WatcherEntry.js';
 export default Telescope;
-export { JSONFileSyncAdapter, LowDriver, MemoryDriver, RequestWatcher, RequestWatcherEntry, ClientRequestWatcher, ClientRequestWatcherEntry, ErrorWatcher, ErrorWatcherEntry, DumpWatcher, DumpWatcherEntry, LogWatcher, LogWatcherEntry, QueryWatcher, QueryWatcherEntry, DB, WatcherEntry, WatcherEntryDataType, WatcherEntryCollectionType };
+export { JSONFileSyncAdapter, LowDriver, MemoryDriver, PostgresDriver, schemaSql, RequestWatcher, RequestWatcherEntry, ClientRequestWatcher, ClientRequestWatcherEntry, ErrorWatcher, ErrorWatcherEntry, DumpWatcher, DumpWatcherEntry, LogWatcher, LogWatcherEntry, QueryWatcher, QueryWatcherEntry, DB, WatcherEntry, WatcherEntryDataType, WatcherEntryCollectionType };

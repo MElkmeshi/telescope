@@ -38,8 +38,9 @@ export default class Telescope {
         this.config = resolveConfig(options);
         this.enabledWatchers = (_a = options === null || options === void 0 ? void 0 : options.enabledWatchers) !== null && _a !== void 0 ? _a : DEFAULT_WATCHERS;
         if (options === null || options === void 0 ? void 0 : options.databaseDriver) {
-            DB.configure(options.databaseDriver);
+            DB.configure(options.databaseDriver, { maxEntries: this.config.maxEntries });
         }
+        DB.configureFilter(this.config.filter);
     }
     static setup(app, options) {
         const telescope = new Telescope(app, options);
@@ -48,17 +49,59 @@ export default class Telescope {
                 next();
                 return;
             }
-            runWithContext({ batchId: randomUUID() }, () => {
+            runWithContext({ batchId: randomUUID(), shouldRecord: telescope.rollSample() }, () => {
                 telescope.isEnabled(RequestWatcher)
                     && RequestWatcher.capture(request, response, telescope.config);
                 next();
             });
         });
+        telescope.startPruning();
         telescope.isEnabled(ClientRequestWatcher)
             && ClientRequestWatcher.capture(telescope);
         telescope.isEnabled(LogWatcher)
             && LogWatcher.capture(telescope);
         return telescope;
+    }
+    /** Sampling decision for one batch. */
+    rollSample() {
+        return this.config.sampleRate >= 1 || Math.random() < this.config.sampleRate;
+    }
+    /**
+     * Delete everything older than the retention window. Safe to call by hand
+     * — from a cron, a shutdown hook, or a test.
+     */
+    prune() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.config.retentionHours <= 0) {
+                return 0;
+            }
+            const before = new Date(Date.now() - this.config.retentionHours * 60 * 60 * 1000);
+            return DB.prune(before);
+        });
+    }
+    /**
+     * Start the background sweeper. The timer is unref'd so it never holds the
+     * process open — a debug tool should not be the reason a container refuses
+     * to exit — and it is idempotent, so repeated setup() calls in tests do not
+     * stack timers.
+     */
+    startPruning() {
+        var _a, _b;
+        if (this.pruneTimer || this.config.retentionHours <= 0 || this.config.pruneIntervalMs <= 0) {
+            return;
+        }
+        this.pruneTimer = setInterval(() => {
+            // A sweep failure must not take the process down: this runs
+            // detached, so there is nobody to catch a rejection.
+            this.prune().catch((error) => console.error('[telescope] prune failed', error));
+        }, this.config.pruneIntervalMs);
+        (_b = (_a = this.pruneTimer).unref) === null || _b === void 0 ? void 0 : _b.call(_a);
+    }
+    stopPruning() {
+        if (this.pruneTimer) {
+            clearInterval(this.pruneTimer);
+            this.pruneTimer = undefined;
+        }
     }
     isEnabled(watcher) {
         return this.enabledWatchers.includes(watcher);

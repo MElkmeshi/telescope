@@ -9,19 +9,55 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import LowDriver from "./drivers/LowDriver.js";
 import { WatcherEntryCollectionType } from "./WatcherEntry.js";
+import { shouldRecordCurrentBatch } from "./context.js";
 class DB {
     constructor() {
-        DB.db = new DB.driver();
+        DB.db = new DB.driver(DB.options);
     }
-    static configure(driver) {
-        DB.driver = driver;
-        DB.db = undefined;
+    /**
+     * A driver may be given as a class or as an already-built instance.
+     * Instances exist for drivers that need construction arguments a bare
+     * `new Driver()` cannot supply — a connection pool, most obviously.
+     */
+    static configure(driver, options = {}) {
+        DB.options = options;
+        if (typeof driver === 'function') {
+            DB.driver = driver;
+            DB.db = undefined;
+            return;
+        }
+        DB.db = driver;
+    }
+    /** Applied to every entry before it reaches the driver. */
+    static configureFilter(filter) {
+        DB.filter = filter;
+    }
+    /**
+     * Sampling is checked here rather than in each watcher so that every
+     * collection honours it — a watcher added later cannot forget to.
+     */
+    static shouldStore(entry) {
+        if (!shouldRecordCurrentBatch()) {
+            return false;
+        }
+        return DB.filter ? DB.filter(entry) : true;
+    }
+    static prune(before) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = yield DB.get();
+            return db.prune ? db.prune(before) : 0;
+        });
     }
     static entry(name) {
         return {
             get: (take) => __awaiter(this, void 0, void 0, function* () { return (yield DB.get()).get(name, take); }),
             find: (id) => __awaiter(this, void 0, void 0, function* () { return (yield DB.get()).find(name, id); }),
-            save: (data) => __awaiter(this, void 0, void 0, function* () { return (yield DB.get()).save(name, data); }),
+            save: (data) => __awaiter(this, void 0, void 0, function* () {
+                if (!DB.shouldStore(data)) {
+                    return;
+                }
+                return (yield DB.get()).save(name, data);
+            }),
             update: (index, toUpdate) => __awaiter(this, void 0, void 0, function* () { return (yield DB.get()).update(name, index, toUpdate); }),
         };
     }
@@ -63,4 +99,5 @@ class DB {
     }
 }
 DB.driver = LowDriver;
+DB.options = {};
 export default DB;

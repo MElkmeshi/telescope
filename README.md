@@ -235,6 +235,101 @@ Queries slower than `slowQueryThreshold` (default `100`ms) are flagged in the
 UI. `drizzle-orm` is an optional peer dependency; if you don't use it, you
 don't need to install it.
 
+### 6. Running in production
+
+Three things need attention before this is safe to leave on in production:
+authorization, retention, and where entries are stored.
+
+#### Authorization
+
+The panel is gated by `isAuthorized`, an ordinary Express middleware mounted
+ahead of every Telescope route — the API and the static assets included, not
+just the HTML. The default denies everything when `NODE_ENV=production`, so
+forgetting to configure it locks the panel rather than exposing it.
+
+To actually use it in production, supply your own:
+
+```javascript
+Telescope.setup(app, {
+    isAuthorized: (request, response, next) => {
+        return isAdmin(request) ? next() : response.status(403).send('Forbidden')
+    },
+})
+```
+
+Reuse whatever admin check the app already has. Telescope records full request
+payloads and headers, so a second, weaker auth path in front of it is a way to
+leak everything the app handles.
+
+#### Retention
+
+Entries are deleted by a background sweeper once they pass `retentionHours`.
+`maxEntries` is a per-collection ceiling enforced on write, which is what
+actually bounds memory — a traffic burst can otherwise store an unbounded
+number of entries inside a single retention window.
+
+```javascript
+Telescope.setup(app, {
+    retentionHours: 24,        // Laravel's telescope:prune default
+    maxEntries: 10000,         // per collection; 0 disables
+    pruneIntervalMs: 600000,   // sweep every 10 minutes
+})
+```
+
+The sweeper's timer is `unref`'d, so it never keeps the process alive.
+`telescope.prune()` runs a sweep by hand — from a cron or a shutdown hook —
+and `telescope.stopPruning()` stops the background one.
+
+#### Sampling and filtering
+
+Recording every request in production is rarely what you want.
+
+```javascript
+Telescope.setup(app, {
+    sampleRate: 0.1,                                    // record 10% of requests
+    filter: (entry) => entry.content?.response_status >= 400,
+})
+```
+
+`sampleRate` is decided **once per request** and inherited by every entry in
+that batch, so a recorded request keeps all of its queries and logs — sampling
+per entry would leave orphan queries pointing at requests that were never
+stored. Entries raised outside a request (cron jobs, workers) are always
+recorded. `filter` then runs per entry and has the last word.
+
+#### Storage
+
+| Driver | Stores in | Survives restart | Shared across instances |
+|---|---|---|---|
+| `MemoryDriver` | process memory | no | no |
+| `LowDriver` | `db.json` in cwd | yes | no |
+| `PostgresDriver` | a Postgres table | yes | yes |
+
+`MemoryDriver` and `LowDriver` are development conveniences. On more than one
+instance they give each process its own entries, so the panel shows whichever
+instance happened to serve you. Use `PostgresDriver` in production:
+
+```javascript
+import Telescope, { PostgresDriver } from '@melkmeshi/telescope'
+
+Telescope.setup(app, {
+    databaseDriver: new PostgresDriver({ pool }),
+})
+```
+
+`pool` is any object with a `query(text, values)` method — a node-postgres
+`Pool` or a `@neondatabase/serverless` one both work, so Telescope adds no
+database dependency of its own. Pass the pool the app already has.
+
+The table (`telescope_entries` by default) is created on first use. If your
+schema is managed by migrations, turn that off and run the DDL yourself:
+
+```javascript
+import { schemaSql } from '@melkmeshi/telescope'
+
+new PostgresDriver({ pool, autoMigrate: false })   // and run schemaSql() as a migration
+```
+
 ## Upgrading to 2.0
 
 **Node 22+ and ESM only.** The CommonJS build is gone; `require()` is no

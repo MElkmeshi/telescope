@@ -7,7 +7,7 @@ function defaultIsAuthorized(request, response, next) {
     next();
 }
 export function resolveConfig(options = {}) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
     const path = ((_a = options.path) !== null && _a !== void 0 ? _a : 'telescope').replace(/^\/+|\/+$/g, '');
     return {
         databaseDriver: (_b = options.databaseDriver) !== null && _b !== void 0 ? _b : LowDriver,
@@ -26,5 +26,22 @@ export function resolveConfig(options = {}) {
         path,
         slowQueryThreshold: (_k = options.slowQueryThreshold) !== null && _k !== void 0 ? _k : 100,
         timezone: (_l = options.timezone) !== null && _l !== void 0 ? _l : Intl.DateTimeFormat().resolvedOptions().timeZone,
+        // 24h matches `telescope:prune`'s default.
+        retentionHours: (_m = options.retentionHours) !== null && _m !== void 0 ? _m : 24,
+        maxEntries: (_o = options.maxEntries) !== null && _o !== void 0 ? _o : 10000,
+        pruneIntervalMs: (_p = options.pruneIntervalMs) !== null && _p !== void 0 ? _p : 10 * 60 * 1000,
+        sampleRate: clampSampleRate(options.sampleRate),
+        filter: options.filter,
     };
+}
+/**
+ * An out-of-range sampleRate is a config mistake, and the safe reading of one
+ * is "record everything" — silently recording ~nothing would look like
+ * Telescope was broken rather than misconfigured.
+ */
+function clampSampleRate(rate) {
+    if (rate === undefined || Number.isNaN(rate)) {
+        return 1;
+    }
+    return Math.min(1, Math.max(0, rate));
 }

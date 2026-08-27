@@ -13,8 +13,24 @@ export default class Telescope {
     readonly config: ResolvedConfig;
     readonly enabledWatchers: Watcher[];
     recording: boolean;
+    private pruneTimer?;
     constructor(app: Express, options?: TelescopeOptions);
     static setup(app: Express, options?: TelescopeOptions): Telescope;
+    /** Sampling decision for one batch. */
+    private rollSample;
+    /**
+     * Delete everything older than the retention window. Safe to call by hand
+     * — from a cron, a shutdown hook, or a test.
+     */
+    prune(): Promise<number>;
+    /**
+     * Start the background sweeper. The timer is unref'd so it never holds the
+     * process open — a debug tool should not be the reason a container refuses
+     * to exit — and it is idempotent, so repeated setup() calls in tests do not
+     * stack timers.
+     */
+    startPruning(): void;
+    stopPruning(): void;
     isEnabled(watcher: Watcher): boolean;
     getEnabledWatchers(): string[];
     /**

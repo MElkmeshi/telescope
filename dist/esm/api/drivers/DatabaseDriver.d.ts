@@ -13,7 +13,18 @@ export interface WatcherData {
     queries: WatcherEntry<QueryWatcherData>[];
     "client-requests": WatcherEntry<ClientRequestWatcherData>[];
 }
+export interface DriverOptions {
+    /** Per-collection ceiling enforced on write. 0 disables it. */
+    maxEntries?: number;
+}
 export default interface DatabaseDriver {
+    /**
+     * Delete entries recorded before `before`. Returns how many went.
+     *
+     * Optional so third-party drivers written against the old contract keep
+     * compiling; the sweeper skips any driver that does not implement it.
+     */
+    prune?(before: Date): Promise<number>;
     get<T extends WatcherType>(name: WatcherEntryCollectionType, take?: number): Promise<WatcherEntry<T>[]>;
     find<T extends WatcherType>(name: WatcherEntryCollectionType, id: string): Promise<WatcherEntry<T> | undefined>;
     batch(batchId: string): Promise<WatcherEntry<any>[]>;

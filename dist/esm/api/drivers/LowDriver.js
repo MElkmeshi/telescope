@@ -10,7 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { unlinkSync } from "fs";
 import JSONFileSyncAdapter from "./JSONFileSyncAdapter.js";
 export default class LowDriver {
-    constructor() {
+    constructor(options = {}) {
+        var _a;
         this.db = {
             requests: [],
             exceptions: [],
@@ -20,6 +21,7 @@ export default class LowDriver {
             "client-requests": [],
         };
         this.adapter = new JSONFileSyncAdapter('db.json');
+        this.maxEntries = (_a = options.maxEntries) !== null && _a !== void 0 ? _a : 0;
         this.adapter.read();
     }
     read() {
@@ -57,6 +59,9 @@ export default class LowDriver {
         return __awaiter(this, void 0, void 0, function* () {
             this.read();
             this.db[name].unshift(data);
+            if (this.maxEntries > 0 && this.db[name].length > this.maxEntries) {
+                this.db[name].length = this.maxEntries;
+            }
             this.write();
         });
     }
@@ -66,6 +71,23 @@ export default class LowDriver {
             this.db[name].splice(index, 1);
             this.db[name].unshift(toUpdate);
             this.write();
+        });
+    }
+    prune(before) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.read();
+            const cutoff = before.getTime();
+            let pruned = 0;
+            for (const key of Object.keys(this.db)) {
+                const kept = this.db[key].filter((entry) => new Date(entry.created_at).getTime() >= cutoff);
+                pruned += this.db[key].length - kept.length;
+                // @ts-ignore — key indexes a union of entry array types
+                this.db[key] = kept;
+            }
+            if (pruned > 0) {
+                this.write();
+            }
+            return pruned;
         });
     }
     truncate() {
