@@ -1,4 +1,8 @@
-$font-family-base: Nunito, sans-serif;
+// Light theme. Not currently served — dist/index.html links app-dark.css — but
+// mix compiles it, so every variable base.scss reads must be defined here too.
+@import 'colors';
+
+$font-family-base: Figtree, sans-serif;
 
 $font-size-base: 0.95rem;
 $badge-font-size: 0.95rem;
@@ -16,8 +20,11 @@ $btn-focus-width: 0;
 
 $sidebar-nav-color: #2a5164;
 $sidebar-icon-color: #c3cbd3;
+$sidebar-nav-active-color: $primary;
+$sidebar-nav-active-icon-color: $primary;
 
-$pill-link-active: $primary;
+$pill-link: $gray-600;
+$pill-link-active: $indigo-600;
 
 $border-color: #efefef;
 $table-headers-color: #f3f4f6;

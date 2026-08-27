@@ -1,55 +1,88 @@
-$font-family-base: Nunito, sans-serif;
+// Dark theme, matched to Laravel Telescope's resources/sass/styles-dark.scss.
+//
+// The variable NAMES here are this port's own — base.scss consumes them — but
+// the values are Laravel's, so the two UIs read as the same product. The old
+// palette was a warm neutral grey (#1c1c1c body, #120f12 cards, #494444
+// secondary); Laravel's is a cool Tailwind gray ramp with indigo accents.
+//
+// Two accents are deliberately NOT $primary. $primary (#4040c8) is a deep
+// indigo that is meant for button fills; using it for the sidebar's active
+// item or the tab underline on a $gray-900 background is close to unreadable.
+// Laravel routes those to $indigo-300/$indigo-400 instead, which is why
+// $pill-link-active and $sidebar-nav-active-color exist separately.
 
-$font-size-base: 0.95rem;
-$badge-font-size: 0.95rem;
+@import 'colors';
 
-$primary: #adadff;
-$secondary: #494444;
-$success: #1f9d55;
-$info: #1c3d5a;
-$warning: #684f1d;
-$danger: #621b18;
-$gray-800: $secondary;
+$font-family-base: Figtree, sans-serif;
+$font-weight-bold: 600;
 
-$body-bg: #1c1c1c;
-$body-color: #e2edf4;
+$font-size-base: 1rem;
+$badge-font-size: 0.875rem;
 
-$sidebar-nav-color: #6e6b6b;
-$sidebar-icon-color: #9f9898;
+$primary: #4040c8;
+$secondary: $gray-600;
+$success: $emerald-600;
+$info: $blue-600;
+$warning: $amber-600;
+$danger: $red-600;
 
-$pill-link-active: $primary;
+$body-bg: $gray-900;
+$body-color: $gray-100;
 
-$border-color: #efefef;
-$table-border-color: #343434;
-$table-headers-color: #181818;
-$table-hover-bg: #343434;
+$text-muted: $gray-400;
+
+$border-radius-lg: 6px;
+$card-border-radius: $border-radius-lg;
+
+$logo-color: $gray-200;
+
+$link-color: $indigo-400;
+$link-hover-color: $indigo-300;
+
+$sidebar-nav-color: $gray-400;
+$sidebar-nav-hover-color: $gray-300;
+$sidebar-icon-color: $gray-500;
+$sidebar-nav-active-color: $indigo-400;
+$sidebar-nav-active-icon-color: $indigo-500;
+
+$pill-link: $gray-400;
+$pill-link-active: $indigo-300;
+$pill-link-hover: $gray-200;
+
+$border-color: $gray-600;
+$table-border-color: $gray-700;
+$table-headers-color: $gray-800;
+$table-hover-bg: $gray-700;
 
 $header-border-color: $table-border-color;
 
-$input-bg: #242424;
-$input-color: #e2edf4;
-$input-border-color: $table-border-color;
+$input-bg: $gray-800;
+$input-color: $gray-200;
+$input-border-color: $border-color;
 
-$card-cap-bg: #120f12;
-$card-bg-secondary: #262525;
-$card-bg: $card-cap-bg;
-$card-shadow-color: $body-bg;
+// The cap is LIGHTER than the body in Laravel's dark theme — gray-700 on
+// gray-800 — which is what gives each card a visible header band.
+$card-cap-bg: $gray-700;
+$card-bg-secondary: $gray-800;
+$card-bg: $gray-800;
+$card-shadow-color: $gray-900;
 
-$code-bg: $card-bg-secondary;
+$code-bg: #292d3e;
 
-$paginator-button-color: #9ea7ac;
+$paginator-button-color: $gray-400;
 
 $modal-content-bg: $table-headers-color;
-$modal-backdrop-bg: #7e7e7e;
+$modal-backdrop-bg: $gray-600;
 $modal-footer-border-color: $input-border-color;
 $modal-header-border-color: $input-border-color;
 
-$new-entries-bg: #505e4a;
+$new-entries-bg: $indigo-900;
 
-$control-action-icon-color: #ccd2df;
+$control-action-icon-color: $gray-500;
+$control-action-icon-hover: $indigo-400;
 
-$dropdown-bg: $table-headers-color;
-$dropdown-link-color: #fff;
+$dropdown-bg: $gray-700;
+$dropdown-link-color: $white;
 
 $grid-breakpoints: (
     xs: 0,

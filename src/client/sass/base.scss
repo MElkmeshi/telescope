@@ -44,10 +44,10 @@ svg.icon {
         }
 
         &.active {
-            color: $primary;
+            color: $sidebar-nav-active-color;
 
             svg {
-                fill: $primary;
+                fill: $sidebar-nav-active-icon-color;
             }
         }
     }
@@ -229,14 +229,16 @@ button:hover {
     .nav-pills .nav-link.active {
         background: none;
         color: $pill-link-active;
-        border-bottom: solid 2px $primary;
+        // Underline matches the label rather than $primary, so the active tab
+        // reads as one mark instead of bright text over a dark rule.
+        border-bottom: solid 2px $pill-link-active;
     }
 
     .nav-pills .nav-link {
         font-size: 0.9rem;
         border-radius: 0;
         padding: 0.75rem 1.25rem;
-        color: $body-color;
+        color: $pill-link;
     }
 }
 
