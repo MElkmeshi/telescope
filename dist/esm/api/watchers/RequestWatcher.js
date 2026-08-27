@@ -25,7 +25,7 @@ export class RequestWatcherEntry extends WatcherEntry {
         super(WatcherEntryDataType.requests, data, batchId);
     }
 }
-export default class RequestWatcher {
+class RequestWatcher {
     constructor(request, response, batchId, getUser) {
         this.responseBody = '';
         this.batchId = batchId;
@@ -78,8 +78,8 @@ export default class RequestWatcher {
         return JSON.stringify(content, JSONFileSyncAdapter.getRefReplacer()).length > (1000 * RequestWatcher.responseSizeLimit) ? 'Purged By Telescope' : content;
     }
     save() {
-        var _a;
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             const entry = new RequestWatcherEntry({
                 hostname: hostname(),
                 method: this.request.method,
@@ -108,3 +108,4 @@ RequestWatcher.entryType = WatcherEntryCollectionType.request;
 RequestWatcher.paramsToHide = ['password', 'token', '_csrf'];
 RequestWatcher.ignorePaths = [];
 RequestWatcher.responseSizeLimit = 64;
+export default RequestWatcher;

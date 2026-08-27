@@ -9,7 +9,7 @@ export function dump(data) {
     const watcher = new DumpWatcher(data);
     watcher.save();
 }
-export default class DumpWatcher {
+class DumpWatcher {
     constructor(data) {
         this.data = data;
     }
@@ -21,3 +21,4 @@ export default class DumpWatcher {
     }
 }
 DumpWatcher.entryType = WatcherEntryCollectionType.dump;
+export default DumpWatcher;

@@ -90,11 +90,11 @@ class Telescope {
             });
         }));
         this.app.get('/telescope/telescope-api/:entry/:id', (request, response) => __awaiter(this, void 0, void 0, function* () {
-            var _b;
+            var _a;
             const entry = yield DB_js_1.default.entry(request.params.entry).find(request.params.id);
             response.json({
                 entry,
-                batch: yield DB_js_1.default.batch((_b = entry === null || entry === void 0 ? void 0 : entry.batchId) !== null && _b !== void 0 ? _b : '')
+                batch: yield DB_js_1.default.batch((_a = entry === null || entry === void 0 ? void 0 : entry.batchId) !== null && _a !== void 0 ? _a : '')
             });
         }));
         this.app.delete("/telescope/telescope-api/entries", (request, response) => __awaiter(this, void 0, void 0, function* () {
@@ -127,7 +127,6 @@ class Telescope {
         this.app.get('/telescope/', (request, response) => response.redirect('/telescope/requests'));
     }
 }
-exports.default = Telescope;
 Telescope.enabledWatchers = [
     RequestWatcher_js_1.default,
     ErrorWatcher_js_1.default,
@@ -135,3 +134,4 @@ Telescope.enabledWatchers = [
     DumpWatcher_js_1.default,
     LogWatcher_js_1.default
 ];
+exports.default = Telescope;

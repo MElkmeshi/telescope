@@ -11,7 +11,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 };
 var _JSONFileSyncAdapter_adapter;
 import { TextFileSync } from "./TextFileSync.js";
-export default class JSONFileSyncAdapter {
+class JSONFileSyncAdapter {
     constructor(filename) {
         _JSONFileSyncAdapter_adapter.set(this, void 0);
         __classPrivateFieldSet(this, _JSONFileSyncAdapter_adapter, new TextFileSync(filename), "f");
@@ -42,3 +42,4 @@ JSONFileSyncAdapter.getRefReplacer = () => {
         return value;
     };
 };
+export default JSONFileSyncAdapter;

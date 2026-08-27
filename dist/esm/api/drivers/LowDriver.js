@@ -29,8 +29,8 @@ export default class LowDriver {
         this.adapter.write(this.db);
     }
     get(name, take) {
-        var _a;
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             this.read();
             return (_a = (take ? this.db[name].slice(0, take) : this.db[name])) !== null && _a !== void 0 ? _a : [];
         });

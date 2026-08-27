@@ -17,7 +17,7 @@ export declare enum WatcherEntryCollectionType {
     log = "logs",
     clientRequest = "client-requests"
 }
-export declare type WatcherType = RequestWatcherData | ErrorWatcherData | DumpWatcherData | ClientRequestWatcherData | LogWatcherData;
+export type WatcherType = RequestWatcherData | ErrorWatcherData | DumpWatcherData | ClientRequestWatcherData | LogWatcherData;
 export default abstract class WatcherEntry<T extends WatcherType> {
     content: any;
     created_at: string;

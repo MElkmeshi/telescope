@@ -9,7 +9,7 @@ var WatcherEntryDataType;
     WatcherEntryDataType["dumps"] = "dump";
     WatcherEntryDataType["logs"] = "log";
     WatcherEntryDataType["clientRequests"] = "client-request";
-})(WatcherEntryDataType = exports.WatcherEntryDataType || (exports.WatcherEntryDataType = {}));
+})(WatcherEntryDataType || (exports.WatcherEntryDataType = WatcherEntryDataType = {}));
 var WatcherEntryCollectionType;
 (function (WatcherEntryCollectionType) {
     WatcherEntryCollectionType["request"] = "requests";
@@ -17,7 +17,7 @@ var WatcherEntryCollectionType;
     WatcherEntryCollectionType["dump"] = "dumps";
     WatcherEntryCollectionType["log"] = "logs";
     WatcherEntryCollectionType["clientRequest"] = "client-requests";
-})(WatcherEntryCollectionType = exports.WatcherEntryCollectionType || (exports.WatcherEntryCollectionType = {}));
+})(WatcherEntryCollectionType || (exports.WatcherEntryCollectionType = WatcherEntryCollectionType = {}));
 class WatcherEntry {
     constructor(name, data, batchId) {
         this.id = (0, uuid_1.v4)();

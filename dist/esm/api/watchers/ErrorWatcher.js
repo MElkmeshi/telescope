@@ -17,7 +17,7 @@ export class ErrorWatcherEntry extends WatcherEntry {
         super(WatcherEntryDataType.exceptions, data, batchId);
     }
 }
-export default class ErrorWatcher {
+class ErrorWatcher {
     constructor(error, batchId) {
         this.error = error;
         this.batchId = batchId;
@@ -58,8 +58,8 @@ export default class ErrorWatcher {
         });
     }
     saveOrUpdate() {
-        var _a;
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             const { error, index } = yield this.getSameError();
             const entry = new ErrorWatcherEntry({
                 hostname: hostname(),
@@ -118,3 +118,4 @@ export default class ErrorWatcher {
 }
 ErrorWatcher.entryType = WatcherEntryCollectionType.exception;
 ErrorWatcher.ignoreErrors = [];
+export default ErrorWatcher;

@@ -13,7 +13,7 @@ export class LogWatcherEntry extends WatcherEntry {
         super(WatcherEntryDataType.logs, data, batchId);
     }
 }
-export default class LogWatcher {
+class LogWatcher {
     constructor(data, level, batchId) {
         this.batchId = batchId;
         this.data = {
@@ -65,3 +65,4 @@ export default class LogWatcher {
     }
 }
 LogWatcher.entryType = WatcherEntryCollectionType.log;
+export default LogWatcher;

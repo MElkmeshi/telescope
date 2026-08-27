@@ -31,7 +31,6 @@ class JSONFileSyncAdapter {
         __classPrivateFieldGet(this, _JSONFileSyncAdapter_adapter, "f").write(JSON.stringify(obj, JSONFileSyncAdapter.getRefReplacer(), 2));
     }
 }
-exports.default = JSONFileSyncAdapter;
 _JSONFileSyncAdapter_adapter = new WeakMap();
 JSONFileSyncAdapter.getRefReplacer = () => {
     const seen = new WeakSet();
@@ -45,3 +44,4 @@ JSONFileSyncAdapter.getRefReplacer = () => {
         return value;
     };
 };
+exports.default = JSONFileSyncAdapter;

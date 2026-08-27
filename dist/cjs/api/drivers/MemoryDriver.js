@@ -20,14 +20,14 @@ class MemoryDriver {
         };
     }
     get(name) {
-        var _a;
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             return (_a = this.db[name]) !== null && _a !== void 0 ? _a : [];
         });
     }
     find(name, id) {
-        var _a;
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             return (_a = this.db[name]) === null || _a === void 0 ? void 0 : _a.find((entry) => entry.id === id);
         });
     }
@@ -42,14 +42,14 @@ class MemoryDriver {
         });
     }
     save(name, data) {
-        var _a;
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             (_a = this.db[name]) === null || _a === void 0 ? void 0 : _a.unshift(data);
         });
     }
     update(name, index, toUpdate) {
-        var _a;
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             this.db[name].splice(index, 1);
             (_a = this.db[name]) === null || _a === void 0 ? void 0 : _a.unshift(toUpdate);
         });

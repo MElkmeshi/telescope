@@ -17,7 +17,7 @@ import ErrorWatcher from "./watchers/ErrorWatcher.js";
 import DumpWatcher from "./watchers/DumpWatcher.js";
 import { existsSync } from "fs";
 import path from "path";
-export default class Telescope {
+class Telescope {
     constructor(app) {
         this.app = app;
     }
@@ -85,11 +85,11 @@ export default class Telescope {
             });
         }));
         this.app.get('/telescope/telescope-api/:entry/:id', (request, response) => __awaiter(this, void 0, void 0, function* () {
-            var _b;
+            var _a;
             const entry = yield DB.entry(request.params.entry).find(request.params.id);
             response.json({
                 entry,
-                batch: yield DB.batch((_b = entry === null || entry === void 0 ? void 0 : entry.batchId) !== null && _b !== void 0 ? _b : '')
+                batch: yield DB.batch((_a = entry === null || entry === void 0 ? void 0 : entry.batchId) !== null && _a !== void 0 ? _a : '')
             });
         }));
         this.app.delete("/telescope/telescope-api/entries", (request, response) => __awaiter(this, void 0, void 0, function* () {
@@ -129,3 +129,4 @@ Telescope.enabledWatchers = [
     DumpWatcher,
     LogWatcher
 ];
+export default Telescope;

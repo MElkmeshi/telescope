@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import axios from 'axios';
+import axios, { AxiosHeaders } from 'axios';
 import DB from "../DB.js";
 import WatcherEntry, { WatcherEntryCollectionType, WatcherEntryDataType } from "../WatcherEntry.js";
 import { hostname } from "os";
@@ -16,7 +16,7 @@ export class ClientRequestWatcherEntry extends WatcherEntry {
         super(WatcherEntryDataType.clientRequests, data, batchId);
     }
 }
-export default class ClientRequestWatcher {
+class ClientRequestWatcher {
     constructor(request, response, batchId) {
         this.batchId = batchId;
         this.request = request;
@@ -45,20 +45,30 @@ export default class ClientRequestWatcher {
         }));
     }
     save() {
-        var _a, _b, _c, _d, _e;
         return __awaiter(this, void 0, void 0, function* () {
+            var _a, _b, _c, _d;
             const entry = new ClientRequestWatcherEntry({
                 hostname: hostname(),
                 method: (_b = (_a = this.request.method) === null || _a === void 0 ? void 0 : _a.toUpperCase()) !== null && _b !== void 0 ? _b : '',
                 uri: (_c = this.request.url) !== null && _c !== void 0 ? _c : '',
-                headers: (_d = this.request.headers) !== null && _d !== void 0 ? _d : {},
-                payload: (_e = this.request.data) !== null && _e !== void 0 ? _e : {},
+                headers: ClientRequestWatcher.normalizeHeaders(this.request.headers),
+                payload: (_d = this.request.data) !== null && _d !== void 0 ? _d : {},
                 response_status: this.response.status,
-                response_headers: this.response.headers,
+                response_headers: ClientRequestWatcher.normalizeHeaders(this.response.headers),
                 response: this.isHtmlResponse() ? this.escapeHTML(this.response.data) : this.response.data
             }, this.batchId);
             yield DB.clientRequests().save(entry);
         });
+    }
+    static normalizeHeaders(headers) {
+        if (!headers) {
+            return {};
+        }
+        // axios >=1 wraps headers in an AxiosHeaders instance, which does not
+        // survive being persisted as-is.
+        return headers instanceof AxiosHeaders
+            ? headers.toJSON()
+            : Object.assign({}, headers);
     }
     escapeHTML(html) {
         return html.replace(/[&<>'"]/g, tag => ({
@@ -70,8 +80,9 @@ export default class ClientRequestWatcher {
         }[tag] || tag));
     }
     isHtmlResponse() {
-        var _a, _b, _c, _d;
-        return (_d = (_c = ((_b = (_a = this.response) === null || _a === void 0 ? void 0 : _a.headers) !== null && _b !== void 0 ? _b : [])['content-type']) === null || _c === void 0 ? void 0 : _c.startsWith('text/html')) !== null && _d !== void 0 ? _d : false;
+        var _a, _b;
+        const contentType = (_b = (_a = this.response) === null || _a === void 0 ? void 0 : _a.headers) === null || _b === void 0 ? void 0 : _b['content-type'];
+        return typeof contentType === 'string' && contentType.startsWith('text/html');
     }
     shouldIgnore() {
         const checks = ClientRequestWatcher.ignoreUrls.map((url) => {
@@ -83,3 +94,4 @@ export default class ClientRequestWatcher {
 }
 ClientRequestWatcher.entryType = WatcherEntryCollectionType.clientRequest;
 ClientRequestWatcher.ignoreUrls = [];
+export default ClientRequestWatcher;

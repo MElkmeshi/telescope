@@ -1,19 +1,16 @@
-/** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
+/** @type {import('ts-jest').JestConfigWithTsJest} */
 export default {
   verbose: true,
   preset: 'ts-jest',
   testEnvironment: 'node',
   extensionsToTreatAsEsm: ['.ts'],
-  globals: {
-    'ts-jest': {
-      useESM: true,
-    },
-  },
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   transform: {
-    "\\.tsx?$": "ts-jest",
+    // Types are checked by `npm run typecheck` (tsc); isolatedModules in
+    // tsconfig.json keeps ts-jest in transpile-only mode.
+    "\\.tsx?$": ["ts-jest", {useESM: true}],
     "\\.jsx?$": "babel-jest",
   },
   transformIgnorePatterns: ["/node_modules/(?!(lowdb|steno)/)"]

@@ -1,14 +1,15 @@
-import { AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse, AxiosResponseHeaders, Method } from 'axios';
+import { AxiosRequestConfig, AxiosResponse, Method } from 'axios';
 import WatcherEntry, { WatcherEntryCollectionType } from "../WatcherEntry.js";
 import Telescope from "../Telescope.js";
+export type HeadersType = Record<string, string | number | boolean | string[] | null>;
 export interface ClientRequestWatcherData {
     hostname: string;
     method: Method | string;
     uri: string;
-    headers: AxiosRequestHeaders;
+    headers: HeadersType;
     payload: object;
     response_status: number;
-    response_headers: AxiosResponseHeaders;
+    response_headers: HeadersType;
     response: any;
 }
 export declare class ClientRequestWatcherEntry extends WatcherEntry<ClientRequestWatcherData> {
@@ -23,6 +24,7 @@ export default class ClientRequestWatcher {
     constructor(request: AxiosRequestConfig, response: AxiosResponse, batchId?: string);
     static capture(telescope: Telescope): void;
     save(): Promise<void>;
+    private static normalizeHeaders;
     private escapeHTML;
     private isHtmlResponse;
     private shouldIgnore;

@@ -1,18 +1,20 @@
-import axios, {AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse, AxiosResponseHeaders, Method} from 'axios'
+import axios, {AxiosHeaders, AxiosRequestConfig, AxiosResponse, Method} from 'axios'
 import DB from "../DB.js"
 import WatcherEntry, {WatcherEntryCollectionType, WatcherEntryDataType} from "../WatcherEntry.js"
 import {hostname} from "os"
 import Telescope from "../Telescope.js"
+
+export type HeadersType = Record<string, string | number | boolean | string[] | null>
 
 export interface ClientRequestWatcherData
 {
     hostname: string
     method: Method | string
     uri: string
-    headers: AxiosRequestHeaders
+    headers: HeadersType
     payload: object
     response_status: number
-    response_headers: AxiosResponseHeaders
+    response_headers: HeadersType
     response: any
 }
 
@@ -79,14 +81,27 @@ export default class ClientRequestWatcher
             hostname: hostname(),
             method: this.request.method?.toUpperCase() ?? '',
             uri: this.request.url ?? '',
-            headers: this.request.headers ?? {},
+            headers: ClientRequestWatcher.normalizeHeaders(this.request.headers),
             payload: this.request.data ?? {},
             response_status: this.response.status,
-            response_headers: this.response.headers,
+            response_headers: ClientRequestWatcher.normalizeHeaders(this.response.headers),
             response: this.isHtmlResponse() ? this.escapeHTML(this.response.data) : this.response.data
         }, this.batchId)
 
         await DB.clientRequests().save(entry)
+    }
+
+    private static normalizeHeaders(headers?: unknown): HeadersType
+    {
+        if (!headers) {
+            return {}
+        }
+
+        // axios >=1 wraps headers in an AxiosHeaders instance, which does not
+        // survive being persisted as-is.
+        return headers instanceof AxiosHeaders
+            ? headers.toJSON() as HeadersType
+            : {...headers as HeadersType}
     }
 
     private escapeHTML(html: string)
@@ -106,7 +121,9 @@ export default class ClientRequestWatcher
 
     private isHtmlResponse(): boolean
     {
-        return (this.response?.headers ?? [])['content-type']?.startsWith('text/html') ?? false
+        const contentType = this.response?.headers?.['content-type']
+
+        return typeof contentType === 'string' && contentType.startsWith('text/html')
     }
 
     private shouldIgnore(): boolean

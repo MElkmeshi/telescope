@@ -15,13 +15,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -48,7 +58,7 @@ var HTTPMethod;
     HTTPMethod["PUT"] = "PUT";
     HTTPMethod["PATCH"] = "PATCH";
     HTTPMethod["DELETE"] = "DELETE";
-})(HTTPMethod = exports.HTTPMethod || (exports.HTTPMethod = {}));
+})(HTTPMethod || (exports.HTTPMethod = HTTPMethod = {}));
 class RequestWatcherEntry extends WatcherEntry_js_1.default {
     constructor(data, batchId) {
         super(WatcherEntry_js_1.WatcherEntryDataType.requests, data, batchId);
@@ -108,8 +118,8 @@ class RequestWatcher {
         return JSON.stringify(content, JSONFileSyncAdapter_js_1.default.getRefReplacer()).length > (1000 * RequestWatcher.responseSizeLimit) ? 'Purged By Telescope' : content;
     }
     save() {
-        var _a;
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             const entry = new RequestWatcherEntry({
                 hostname: (0, os_1.hostname)(),
                 method: this.request.method,
@@ -134,8 +144,8 @@ class RequestWatcher {
         return checks.includes(true);
     }
 }
-exports.default = RequestWatcher;
 RequestWatcher.entryType = WatcherEntry_js_1.WatcherEntryCollectionType.request;
 RequestWatcher.paramsToHide = ['password', 'token', '_csrf'];
 RequestWatcher.ignorePaths = [];
 RequestWatcher.responseSizeLimit = 64;
+exports.default = RequestWatcher;
