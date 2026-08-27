@@ -4,6 +4,7 @@ export const WatcherEntryDataType = {
     exceptions: "exception",
     dumps: "dump",
     logs: "log",
+    queries: "query",
     clientRequests: "client-request",
 };
 export const WatcherEntryCollectionType = {
@@ -11,6 +12,7 @@ export const WatcherEntryCollectionType = {
     exception: "exceptions",
     dump: "dumps",
     log: "logs",
+    query: "queries",
     clientRequest: "client-requests",
 };
 export default class WatcherEntry {

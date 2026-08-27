@@ -16,6 +16,7 @@ export default class LowDriver {
             exceptions: [],
             dumps: [],
             logs: [],
+            queries: [],
             "client-requests": [],
         };
         this.adapter = new JSONFileSyncAdapter('db.json');

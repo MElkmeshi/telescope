@@ -15,6 +15,10 @@
     ".": {
       "types": "./dist/esm/index.d.ts",
       "default": "./dist/esm/index.js"
+    },
+    "./drizzle": {
+      "types": "./dist/esm/drizzle/index.d.ts",
+      "default": "./dist/esm/drizzle/index.js"
     }
   },
   "engines": {
@@ -42,6 +46,7 @@
     "axios-mock-adapter": "^2.1.0",
     "babel-jest": "^30.4.1",
     "body-parser": "^2.3.0",
+    "drizzle-orm": "^0.45.2",
     "jest": "^30.4.2",
     "supertest": "^6.2.3",
     "ts-jest": "^29.4.12",
@@ -50,5 +55,13 @@
   },
   "optionalDependencies": {
     "fsevents": "^2.3.2"
+  },
+  "peerDependencies": {
+    "drizzle-orm": ">=0.30.0"
+  },
+  "peerDependenciesMeta": {
+    "drizzle-orm": {
+      "optional": true
+    }
   }
 }

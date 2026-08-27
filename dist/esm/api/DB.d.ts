@@ -38,6 +38,12 @@ declare class DB {
         save: (data: WatcherEntry<WatcherType>) => Promise<void>;
         update: (index: number, toUpdate: WatcherEntry<WatcherType>) => Promise<void>;
     };
+    static queries(): {
+        get: (take?: number) => Promise<WatcherEntry<WatcherType>[]>;
+        find: (id: string) => Promise<WatcherEntry<WatcherType> | undefined>;
+        save: (data: WatcherEntry<WatcherType>) => Promise<void>;
+        update: (index: number, toUpdate: WatcherEntry<WatcherType>) => Promise<void>;
+    };
     static clientRequests(): {
         get: (take?: number) => Promise<WatcherEntry<WatcherType>[]>;
         find: (id: string) => Promise<WatcherEntry<WatcherType> | undefined>;

@@ -14,6 +14,7 @@ export default class MemoryDriver {
             exceptions: [],
             dumps: [],
             logs: [],
+            queries: [],
             "client-requests": [],
         };
     }
@@ -59,6 +60,7 @@ export default class MemoryDriver {
                 exceptions: [],
                 dumps: [],
                 logs: [],
+                queries: [],
                 "client-requests": [],
             };
         });

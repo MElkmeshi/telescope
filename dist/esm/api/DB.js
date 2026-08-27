@@ -47,6 +47,9 @@ class DB {
     static logs() {
         return this.entry(WatcherEntryCollectionType.log);
     }
+    static queries() {
+        return this.entry(WatcherEntryCollectionType.query);
+    }
     static clientRequests() {
         return this.entry(WatcherEntryCollectionType.clientRequest);
     }
