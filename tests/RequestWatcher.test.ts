@@ -152,6 +152,91 @@ describe('RequestWatcher', () => {
         expect(entry.content.payload).toEqual({foo: '********'})
     })
 
+    it('stores a json response as an object, not as escaped text', async () => {
+        const app = express()
+
+        Telescope.setup(app)
+
+        // res.json() serialises and calls res.send() with the string, so
+        // without decoding the panel renders one long quoted blob.
+        app.get('/', (request, response) => {
+            response.json({isInWishlist: false, wishlistId: null, listingType: 'home'})
+        })
+
+        await request(app)
+            .get('/')
+
+        const entry = (await DB.requests().get())[0]
+
+        expect(typeof entry.content.response).toEqual('object')
+        expect(entry.content.response.isInWishlist).toEqual(false)
+        expect(entry.content.response.wishlistId).toBeNull()
+        expect(entry.content.response.listingType).toEqual('home')
+    })
+
+    it('stores a json array response as an array', async () => {
+        const app = express()
+
+        Telescope.setup(app)
+
+        app.get('/', (request, response) => response.json([{id: 1}, {id: 2}]))
+
+        await request(app)
+            .get('/')
+
+        const entry = (await DB.requests().get())[0]
+
+        expect(Array.isArray(entry.content.response)).toBe(true)
+        expect(entry.content.response).toHaveLength(2)
+    })
+
+    it('leaves a non-json response as text', async () => {
+        const app = express()
+
+        Telescope.setup(app)
+
+        app.get('/', (request, response) => response.send('<h1>Hello</h1>'))
+
+        await request(app)
+            .get('/')
+
+        expect((await DB.requests().get())[0].content.response).toEqual('<h1>Hello</h1>')
+    })
+
+    it('leaves a bare json scalar as the text that was sent', async () => {
+        const app = express()
+
+        Telescope.setup(app)
+
+        // Valid JSON, but "5" reads better than the number it decodes to.
+        app.get('/', (request, response) => response.send('5'))
+
+        await request(app)
+            .get('/')
+
+        expect((await DB.requests().get())[0].content.response).toEqual('5')
+    })
+
+    it('masks hidden params inside a nested json response', async () => {
+        const app = express()
+
+        Telescope.setup(app, {paramsToHide: ['token']})
+
+        app.get('/', (request, response) => {
+            response.json({data: {session: {token: 'super-secret', id: 7}}})
+        })
+
+        await request(app)
+            .get('/')
+
+        const entry = (await DB.requests().get())[0]
+
+        // Nested, because a credential one level down is the same credential.
+        expect(entry.content.response.data.session.token).toEqual('********')
+        expect(entry.content.response.data.session.id).toEqual(7)
+        expect(JSON.stringify(entry.content.response)).not.toContain('super-secret')
+    })
+
     it('saves response headers', async () => {
         const app = express()
 

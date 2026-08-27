@@ -64,6 +64,21 @@ export default class RequestWatcher {
     private getResponseHeaders;
     private filter;
     private contentWithinLimits;
+    /**
+     * Prepare the response body for storage.
+     *
+     * res.json() serialises to a string and calls res.send() with it, so what
+     * this watcher intercepts is already JSON text. Stored raw, the panel shows
+     * one long escaped string instead of a tree. Decoding it here is what
+     * Laravel does too (RequestWatcher::response).
+     */
+    private formatResponse;
+    /**
+     * Mask configured params anywhere in the decoded body, not just at the top
+     * level. Responses nest — a token under `data.session.token` is the same
+     * credential as one at the root, and this panel renders it in plain text.
+     */
+    private maskDeep;
     save(): Promise<void>;
     shouldIgnore(): boolean;
 }

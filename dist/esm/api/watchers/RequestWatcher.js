@@ -59,7 +59,7 @@ class RequestWatcher {
         const oldSend = this.response.send;
         this.response.send = (content) => {
             const sent = oldSend.call(this.response, content);
-            callback(this.contentWithinLimits(content));
+            callback(this.formatResponse(content));
             return sent;
         };
     }
@@ -98,6 +98,55 @@ class RequestWatcher {
     }
     contentWithinLimits(content) {
         return JSON.stringify(content, JSONFileSyncAdapter.getRefReplacer()).length > (1000 * this.config.responseSizeLimit) ? 'Purged By Telescope' : content;
+    }
+    /**
+     * Prepare the response body for storage.
+     *
+     * res.json() serialises to a string and calls res.send() with it, so what
+     * this watcher intercepts is already JSON text. Stored raw, the panel shows
+     * one long escaped string instead of a tree. Decoding it here is what
+     * Laravel does too (RequestWatcher::response).
+     */
+    formatResponse(content) {
+        const limited = this.contentWithinLimits(content);
+        if (limited === 'Purged By Telescope' || typeof limited !== 'string') {
+            return limited;
+        }
+        let parsed;
+        try {
+            parsed = JSON.parse(limited);
+        }
+        catch (_a) {
+            // Not JSON — HTML, plain text, a redirect notice. Keep it as it is.
+            return limited;
+        }
+        // Only objects and arrays. A body of `"5"` or `"true"` is technically
+        // valid JSON but reads better as the text that was actually sent.
+        if (parsed === null || typeof parsed !== 'object') {
+            return limited;
+        }
+        return this.maskDeep(parsed);
+    }
+    /**
+     * Mask configured params anywhere in the decoded body, not just at the top
+     * level. Responses nest — a token under `data.session.token` is the same
+     * credential as one at the root, and this panel renders it in plain text.
+     */
+    maskDeep(value, depth = 0) {
+        // Bounded so a deep or self-referential structure cannot spin here.
+        if (depth > 12 || value === null || typeof value !== 'object') {
+            return value;
+        }
+        if (Array.isArray(value)) {
+            return value.map((item) => this.maskDeep(item, depth + 1));
+        }
+        const masked = {};
+        for (const [key, item] of Object.entries(value)) {
+            masked[key] = this.config.paramsToHide.includes(key)
+                ? '********'
+                : this.maskDeep(item, depth + 1);
+        }
+        return masked;
     }
     save() {
         return __awaiter(this, void 0, void 0, function* () {
