@@ -4,12 +4,13 @@ import {hostname} from "os"
 import Telescope from "../Telescope.js"
 import JSONFileSyncAdapter from "../drivers/JSONFileSyncAdapter.js"
 
-export enum LogLevel
-{
-    INFO = "info",
-    WARNING = "warning",
-    ERROR = "error",
-}
+export const LogLevel = {
+    INFO: "info",
+    WARNING: "warning",
+    ERROR: "error",
+} as const
+
+export type LogLevel = typeof LogLevel[keyof typeof LogLevel]
 
 export interface LogWatcherData
 {

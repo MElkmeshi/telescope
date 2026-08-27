@@ -5,15 +5,16 @@ import WatcherEntry, {WatcherEntryCollectionType, WatcherEntryDataType} from "..
 import {hostname} from "os"
 import JSONFileSyncAdapter from "../drivers/JSONFileSyncAdapter.js"
 
-export enum HTTPMethod
-{
-    GET = "GET",
-    HEAD = "HEAD",
-    POST = "POST",
-    PUT = "PUT",
-    PATCH = "PATCH",
-    DELETE = "DELETE",
-}
+export const HTTPMethod = {
+    GET: "GET",
+    HEAD: "HEAD",
+    POST: "POST",
+    PUT: "PUT",
+    PATCH: "PATCH",
+    DELETE: "DELETE",
+} as const
+
+export type HTTPMethod = typeof HTTPMethod[keyof typeof HTTPMethod]
 
 export type GetUserFunction = (request: any) => User | Promise<User>
 

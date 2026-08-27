@@ -5,23 +5,27 @@ import {DumpWatcherData} from "./watchers/DumpWatcher.js"
 import {LogWatcherData} from "./watchers/LogWatcher.js"
 import {ClientRequestWatcherData} from "./watchers/ClientRequestWatcher.js"
 
-export enum WatcherEntryDataType
-{
-    requests = "request",
-    exceptions = "exception",
-    dumps = "dump",
-    logs = "log",
-    clientRequests = "client-request",
-}
+export const WatcherEntryDataType = {
+    requests: "request",
+    exceptions: "exception",
+    dumps: "dump",
+    logs: "log",
+    clientRequests: "client-request",
+} as const
 
-export enum WatcherEntryCollectionType
-{
-    request = "requests",
-    exception = "exceptions",
-    dump = "dumps",
-    log = "logs",
-    clientRequest = "client-requests",
-}
+export type WatcherEntryDataType =
+    typeof WatcherEntryDataType[keyof typeof WatcherEntryDataType]
+
+export const WatcherEntryCollectionType = {
+    request: "requests",
+    exception: "exceptions",
+    dump: "dumps",
+    log: "logs",
+    clientRequest: "client-requests",
+} as const
+
+export type WatcherEntryCollectionType =
+    typeof WatcherEntryCollectionType[keyof typeof WatcherEntryCollectionType]
 
 export type WatcherType =
     RequestWatcherData |
