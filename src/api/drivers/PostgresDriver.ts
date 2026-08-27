@@ -98,13 +98,25 @@ export default class PostgresDriver implements DatabaseDriver
         }
     }
 
-    public async get<T extends WatcherType>(name: WatcherEntryCollectionType, take?: number): Promise<WatcherEntry<T>[]>
+    public async get<T extends WatcherType>(name: WatcherEntryCollectionType, take?: number, tag?: string): Promise<WatcherEntry<T>[]>
     {
         await this.migrate()
 
+        const needle = tag?.trim()
+
+        // Filtered in SQL, not after the fact: LIMIT has to apply to matching
+        // rows, or an uncommon tag returns an empty page while matches sit
+        // just beyond the limit. NULL disables the clause.
         const {rows} = await this.pool.query(
-            `SELECT * FROM ${this.table} WHERE collection = $1 ORDER BY created_at DESC LIMIT $2`,
-            [name, take ?? 50]
+            `SELECT * FROM ${this.table}
+              WHERE collection = $1
+                AND ($3::text IS NULL OR EXISTS (
+                        SELECT 1 FROM jsonb_array_elements_text(tags) AS t(value)
+                         WHERE t.value ILIKE '%' || $3 || '%'
+                    ))
+              ORDER BY created_at DESC
+              LIMIT $2`,
+            [name, take ?? 50, needle || null]
         )
 
         return rows.map(toEntry) as WatcherEntry<T>[]

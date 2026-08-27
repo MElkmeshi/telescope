@@ -56,10 +56,21 @@ export default class PostgresDriver {
             throw new Error(`Invalid Telescope table name: ${this.table}`);
         }
     }
-    get(name, take) {
+    get(name, take, tag) {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.migrate();
-            const { rows } = yield this.pool.query(`SELECT * FROM ${this.table} WHERE collection = $1 ORDER BY created_at DESC LIMIT $2`, [name, take !== null && take !== void 0 ? take : 50]);
+            const needle = tag === null || tag === void 0 ? void 0 : tag.trim();
+            // Filtered in SQL, not after the fact: LIMIT has to apply to matching
+            // rows, or an uncommon tag returns an empty page while matches sit
+            // just beyond the limit. NULL disables the clause.
+            const { rows } = yield this.pool.query(`SELECT * FROM ${this.table}
+              WHERE collection = $1
+                AND ($3::text IS NULL OR EXISTS (
+                        SELECT 1 FROM jsonb_array_elements_text(tags) AS t(value)
+                         WHERE t.value ILIKE '%' || $3 || '%'
+                    ))
+              ORDER BY created_at DESC
+              LIMIT $2`, [name, take !== null && take !== void 0 ? take : 50, needle || null]);
             return rows.map(toEntry);
         });
     }

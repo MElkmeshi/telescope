@@ -32,7 +32,13 @@ export default interface DatabaseDriver
      */
     prune?(before: Date): Promise<number>
 
-    get<T extends WatcherType>(name: WatcherEntryCollectionType, take?: number): Promise<WatcherEntry<T>[]>
+    /**
+     * `tag` filters to entries carrying a matching tag. Matching is a
+     * case-insensitive substring so that typing `500` finds `status:500` and
+     * `Auth:` finds every authenticated request, rather than demanding the
+     * exact tag string.
+     */
+    get<T extends WatcherType>(name: WatcherEntryCollectionType, take?: number, tag?: string): Promise<WatcherEntry<T>[]>
 
     find<T extends WatcherType>(name: WatcherEntryCollectionType, id: string): Promise<WatcherEntry<T> | undefined>
 

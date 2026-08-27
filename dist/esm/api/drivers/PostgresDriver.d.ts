@@ -41,7 +41,7 @@ export default class PostgresDriver implements DatabaseDriver {
     private autoMigrate;
     private migration?;
     constructor(options: PostgresDriverOptions);
-    get<T extends WatcherType>(name: WatcherEntryCollectionType, take?: number): Promise<WatcherEntry<T>[]>;
+    get<T extends WatcherType>(name: WatcherEntryCollectionType, take?: number, tag?: string): Promise<WatcherEntry<T>[]>;
     find<T extends WatcherType>(name: WatcherEntryCollectionType, id: string): Promise<WatcherEntry<T> | undefined>;
     batch(batchId: string): Promise<WatcherEntry<any>[]>;
     save<T extends WatcherType>(name: WatcherEntryCollectionType, data: WatcherEntry<T>): Promise<void>;

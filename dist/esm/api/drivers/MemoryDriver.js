@@ -7,6 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+import { matchesTag } from "./tagMatch.js";
 function emptyDb() {
     return {
         requests: [],
@@ -23,10 +24,12 @@ export default class MemoryDriver {
         this.db = emptyDb();
         this.maxEntries = (_a = options.maxEntries) !== null && _a !== void 0 ? _a : 0;
     }
-    get(name, take) {
+    get(name, take, tag) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
-            const entries = (_a = this.db[name]) !== null && _a !== void 0 ? _a : [];
+            // Filter before slicing: taking 50 and then filtering would return
+            // fewer than 50 matches, or none, whenever the tag is uncommon.
+            const entries = ((_a = this.db[name]) !== null && _a !== void 0 ? _a : []).filter((entry) => matchesTag(entry, tag));
             // Honouring `take` matters more here than for a file-backed driver:
             // this list is the whole recorded history, and the client asks for a
             // page of 50. Returning all of it serialised the entire buffer on

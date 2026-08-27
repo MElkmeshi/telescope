@@ -176,6 +176,53 @@ describe('PostgresDriver', () => {
         expect(entries.map(e => e.content.uri)).not.toContain('/second')
     })
 
+    it('filters by tag in SQL', async () => {
+        if (!available) return
+
+        const d = driver()
+
+        const ok = entry({uri: '/ok'})
+        ok.tags = ['status:200', 'method:GET', 'Auth:42']
+
+        const boom = entry({uri: '/boom'})
+        boom.tags = ['status:500', 'method:GET', 'Auth:99']
+
+        await d.save(WatcherEntryCollectionType.request, ok)
+        await d.save(WatcherEntryCollectionType.request, boom)
+
+        const errors = await d.get(WatcherEntryCollectionType.request, 50, 'status:500')
+
+        expect(errors).toHaveLength(1)
+        expect(errors[0].content.uri).toEqual('/boom')
+
+        // Bare code, and case-insensitivity, same as the in-memory drivers.
+        expect(await d.get(WatcherEntryCollectionType.request, 50, '500')).toHaveLength(1)
+        expect(await d.get(WatcherEntryCollectionType.request, 50, 'auth:42')).toHaveLength(1)
+
+        // No tag means no filtering.
+        expect(await d.get(WatcherEntryCollectionType.request, 50)).toHaveLength(2)
+        expect(await d.get(WatcherEntryCollectionType.request, 50, '')).toHaveLength(2)
+    })
+
+    it('applies the tag filter before LIMIT', async () => {
+        if (!available) return
+
+        const d = driver()
+
+        for (let i = 0; i < 20; i++) {
+            const noise = entry({hoursAgo: i + 1, uri: '/noise'})
+            noise.tags = ['status:200']
+            await d.save(WatcherEntryCollectionType.request, noise)
+        }
+
+        const rare = entry({uri: '/rare'})
+        rare.tags = ['status:500']
+        await d.save(WatcherEntryCollectionType.request, rare)
+
+        // Filtering after LIMIT 5 would miss it entirely.
+        expect(await d.get(WatcherEntryCollectionType.request, 5, 'status:500')).toHaveLength(1)
+    })
+
     it('truncates', async () => {
         if (!available) return
 

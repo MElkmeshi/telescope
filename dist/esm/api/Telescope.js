@@ -125,7 +125,9 @@ export default class Telescope {
         });
         router.post('/telescope-api/:entry', (request, response) => __awaiter(this, void 0, void 0, function* () {
             var _a;
-            const entries = yield DB.entry(request.params.entry).get(Number((_a = request.query.take) !== null && _a !== void 0 ? _a : 50));
+            const entries = yield DB.entry(request.params.entry).get(Number((_a = request.query.take) !== null && _a !== void 0 ? _a : 50), 
+            // The client always sends ?tag=, empty when the box is blank.
+            typeof request.query.tag === 'string' ? request.query.tag : undefined);
             response.json({
                 entries,
                 status: "enabled"

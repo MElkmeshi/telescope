@@ -148,9 +148,36 @@ class RequestWatcher {
         }
         return masked;
     }
+    /**
+     * Tags are what the panel's search box filters on, so they are the answer
+     * to "show me this user's requests" and "show me the 500s".
+     *
+     * `Auth:<id>` is Laravel's own format (IncomingEntry::user). The rest —
+     * status, method, path — are the facets worth slicing a request log by.
+     */
+    buildTags(user) {
+        const tags = [
+            `status:${this.response.statusCode}`,
+            `method:${this.request.method}`,
+        ];
+        if (this.request.path) {
+            tags.push(`path:${this.request.path}`);
+        }
+        if ((user === null || user === void 0 ? void 0 : user.id) !== undefined && (user === null || user === void 0 ? void 0 : user.id) !== null) {
+            tags.push(`Auth:${user.id}`);
+        }
+        if (user === null || user === void 0 ? void 0 : user.email) {
+            // Searching by who is far more natural than by an opaque id.
+            tags.push(`email:${user.email}`);
+        }
+        return tags;
+    }
     save() {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
+            // Resolved once: getUser may hit a database, and it is needed both for
+            // the entry's content and for its Auth: tag.
+            const user = this.getUser ? ((_a = yield this.getUser(this.request)) !== null && _a !== void 0 ? _a : undefined) : undefined;
             const entry = new RequestWatcherEntry({
                 hostname: hostname(),
                 method: this.request.method,
@@ -163,9 +190,10 @@ class RequestWatcher {
                 headers: this.request.headers,
                 response_headers: this.getResponseHeaders(),
                 response: this.responseBody,
-                user: this.getUser ? ((_a = yield this.getUser(this.request)) !== null && _a !== void 0 ? _a : undefined) : undefined,
+                user,
                 controllerAction: this.controllerAction
             }, currentBatchId());
+            entry.tags = this.buildTags(user);
             yield DB.requests().save(entry);
         });
     }

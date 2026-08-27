@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { unlinkSync } from "fs";
 import JSONFileSyncAdapter from "./JSONFileSyncAdapter.js";
+import { matchesTag } from "./tagMatch.js";
 export default class LowDriver {
     constructor(options = {}) {
         var _a;
@@ -31,11 +32,13 @@ export default class LowDriver {
     write() {
         this.adapter.write(this.db);
     }
-    get(name, take) {
+    get(name, take, tag) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
             this.read();
-            return (_a = (take ? this.db[name].slice(0, take) : this.db[name])) !== null && _a !== void 0 ? _a : [];
+            // Filter before slicing, or an uncommon tag yields an empty page.
+            const entries = ((_a = this.db[name]) !== null && _a !== void 0 ? _a : []).filter((entry) => matchesTag(entry, tag));
+            return take ? entries.slice(0, take) : entries;
         });
     }
     find(name, id) {

@@ -2,6 +2,7 @@ import DatabaseDriver, {DriverOptions, WatcherData} from "./DatabaseDriver.js"
 import {unlinkSync} from "fs"
 import WatcherEntry, {WatcherEntryCollectionType, WatcherType} from "../WatcherEntry.js"
 import JSONFileSyncAdapter from "./JSONFileSyncAdapter.js"
+import {matchesTag} from "./tagMatch.js"
 
 export default class LowDriver implements DatabaseDriver
 {
@@ -34,11 +35,14 @@ export default class LowDriver implements DatabaseDriver
         this.adapter.write(this.db)
     }
 
-    public async get<T extends WatcherType>(name: WatcherEntryCollectionType, take?: number): Promise<WatcherEntry<T>[]>
+    public async get<T extends WatcherType>(name: WatcherEntryCollectionType, take?: number, tag?: string): Promise<WatcherEntry<T>[]>
     {
         this.read()
 
-        return (take ? this.db[name].slice(0, take) : this.db[name]) ?? []
+        // Filter before slicing, or an uncommon tag yields an empty page.
+        const entries = (this.db[name] ?? []).filter((entry) => matchesTag(entry, tag))
+
+        return take ? entries.slice(0, take) : entries
     }
 
     public async find<T extends WatcherType>(name: WatcherEntryCollectionType, id: string): Promise<WatcherEntry<T> | undefined>

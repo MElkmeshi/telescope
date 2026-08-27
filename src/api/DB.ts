@@ -67,7 +67,7 @@ class DB
     public static entry<T extends WatcherType, U extends WatcherEntry<T>>(name: WatcherEntryCollectionType)
     {
         return {
-            get: async (take?: number) => (await DB.get()).get(name, take),
+            get: async (take?: number, tag?: string) => (await DB.get()).get(name, take, tag),
             find: async (id: string) => (await DB.get()).find(name, id),
             save: async (data: WatcherEntry<T>) => {
                 if (!DB.shouldStore(data)) {

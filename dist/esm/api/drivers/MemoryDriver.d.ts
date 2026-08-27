@@ -4,7 +4,7 @@ export default class MemoryDriver implements DatabaseDriver {
     private db;
     private maxEntries;
     constructor(options?: DriverOptions);
-    get<T extends WatcherType>(name: WatcherEntryCollectionType, take?: number): Promise<WatcherEntry<T>[]>;
+    get<T extends WatcherType>(name: WatcherEntryCollectionType, take?: number, tag?: string): Promise<WatcherEntry<T>[]>;
     find<T extends WatcherType>(name: WatcherEntryCollectionType, id: string): Promise<WatcherEntry<T> | undefined>;
     batch(batchId: string): Promise<WatcherEntry<any>[]>;
     save<T extends keyof WatcherType>(name: WatcherEntryCollectionType, data: WatcherEntry<T>): Promise<void>;

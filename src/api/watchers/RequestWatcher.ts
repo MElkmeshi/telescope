@@ -18,7 +18,13 @@ export const HTTPMethod = {
 
 export type HTTPMethod = typeof HTTPMethod[keyof typeof HTTPMethod]
 
-export type GetUserFunction = (request: any) => User | Promise<User>
+/**
+ * Anonymous traffic has no user, so undefined (or null) is a normal return,
+ * not an error — save() already coalesces it away. The type said otherwise,
+ * which forced a cast on every honest implementation.
+ */
+export type GetUserFunction = (request: any) =>
+    User | undefined | null | Promise<User | undefined | null>
 
 export interface User
 {
@@ -234,8 +240,42 @@ export default class RequestWatcher
         return masked
     }
 
+    /**
+     * Tags are what the panel's search box filters on, so they are the answer
+     * to "show me this user's requests" and "show me the 500s".
+     *
+     * `Auth:<id>` is Laravel's own format (IncomingEntry::user). The rest —
+     * status, method, path — are the facets worth slicing a request log by.
+     */
+    private buildTags(user?: User): string[]
+    {
+        const tags = [
+            `status:${this.response.statusCode}`,
+            `method:${this.request.method}`,
+        ]
+
+        if (this.request.path) {
+            tags.push(`path:${this.request.path}`)
+        }
+
+        if (user?.id !== undefined && user?.id !== null) {
+            tags.push(`Auth:${user.id}`)
+        }
+
+        if (user?.email) {
+            // Searching by who is far more natural than by an opaque id.
+            tags.push(`email:${user.email}`)
+        }
+
+        return tags
+    }
+
     public async save()
     {
+        // Resolved once: getUser may hit a database, and it is needed both for
+        // the entry's content and for its Auth: tag.
+        const user = this.getUser ? (await this.getUser(this.request) ?? undefined) : undefined
+
         const entry = new RequestWatcherEntry({
             hostname: hostname(),
             method: this.request.method as HTTPMethod,
@@ -248,9 +288,11 @@ export default class RequestWatcher
             headers: this.request.headers,
             response_headers: this.getResponseHeaders(),
             response: this.responseBody,
-            user: this.getUser ? (await this.getUser(this.request) ?? undefined) : undefined,
+            user,
             controllerAction: this.controllerAction
         }, currentBatchId())
+
+        entry.tags = this.buildTags(user)
 
         await DB.requests().save(entry)
     }

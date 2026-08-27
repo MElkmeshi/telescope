@@ -168,7 +168,11 @@ export default class Telescope
         })
 
         router.post('/telescope-api/:entry', async (request, response) => {
-            const entries = await DB.entry(request.params.entry as WatcherEntryCollectionType).get(Number(request.query.take ?? 50))
+            const entries = await DB.entry(request.params.entry as WatcherEntryCollectionType).get(
+                Number(request.query.take ?? 50),
+                // The client always sends ?tag=, empty when the box is blank.
+                typeof request.query.tag === 'string' ? request.query.tag : undefined,
+            )
 
             response.json({
                 entries,

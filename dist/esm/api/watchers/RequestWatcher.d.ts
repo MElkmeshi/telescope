@@ -11,7 +11,12 @@ export declare const HTTPMethod: {
     readonly DELETE: "DELETE";
 };
 export type HTTPMethod = typeof HTTPMethod[keyof typeof HTTPMethod];
-export type GetUserFunction = (request: any) => User | Promise<User>;
+/**
+ * Anonymous traffic has no user, so undefined (or null) is a normal return,
+ * not an error — save() already coalesces it away. The type said otherwise,
+ * which forced a cast on every honest implementation.
+ */
+export type GetUserFunction = (request: any) => User | undefined | null | Promise<User | undefined | null>;
 export interface User {
     id: string | number;
     name?: string;
@@ -79,6 +84,14 @@ export default class RequestWatcher {
      * credential as one at the root, and this panel renders it in plain text.
      */
     private maskDeep;
+    /**
+     * Tags are what the panel's search box filters on, so they are the answer
+     * to "show me this user's requests" and "show me the 500s".
+     *
+     * `Auth:<id>` is Laravel's own format (IncomingEntry::user). The rest —
+     * status, method, path — are the facets worth slicing a request log by.
+     */
+    private buildTags;
     save(): Promise<void>;
     shouldIgnore(): boolean;
 }

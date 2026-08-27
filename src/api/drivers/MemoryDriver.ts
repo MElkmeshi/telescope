@@ -1,5 +1,6 @@
 import DatabaseDriver, {DriverOptions, WatcherData} from "./DatabaseDriver.js"
 import WatcherEntry, {WatcherEntryCollectionType, WatcherType} from "../WatcherEntry.js"
+import {matchesTag} from "./tagMatch.js"
 
 function emptyDb(): WatcherData
 {
@@ -24,9 +25,11 @@ export default class MemoryDriver implements DatabaseDriver
         this.maxEntries = options.maxEntries ?? 0
     }
 
-    public async get<T extends WatcherType>(name: WatcherEntryCollectionType, take?: number): Promise<WatcherEntry<T>[]>
+    public async get<T extends WatcherType>(name: WatcherEntryCollectionType, take?: number, tag?: string): Promise<WatcherEntry<T>[]>
     {
-        const entries = this.db[name] ?? []
+        // Filter before slicing: taking 50 and then filtering would return
+        // fewer than 50 matches, or none, whenever the tag is uncommon.
+        const entries = (this.db[name] ?? []).filter((entry) => matchesTag(entry, tag))
 
         // Honouring `take` matters more here than for a file-backed driver:
         // this list is the whole recorded history, and the client asks for a

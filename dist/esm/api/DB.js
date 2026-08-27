@@ -50,7 +50,7 @@ class DB {
     }
     static entry(name) {
         return {
-            get: (take) => __awaiter(this, void 0, void 0, function* () { return (yield DB.get()).get(name, take); }),
+            get: (take, tag) => __awaiter(this, void 0, void 0, function* () { return (yield DB.get()).get(name, take, tag); }),
             find: (id) => __awaiter(this, void 0, void 0, function* () { return (yield DB.get()).find(name, id); }),
             save: (data) => __awaiter(this, void 0, void 0, function* () {
                 if (!DB.shouldStore(data)) {
