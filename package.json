@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "axios": "^1.20.0",
-    "express": "^4.22.2",
     "stack-utils": "^2.0.5"
   },
   "devDependencies": {
@@ -48,6 +47,7 @@
     "babel-jest": "^30.4.1",
     "body-parser": "^2.3.0",
     "drizzle-orm": "^0.45.2",
+    "express": "^4.22.2",
     "jest": "^30.4.2",
     "pg": "^8.23.0",
     "supertest": "^6.2.3",
@@ -59,11 +59,15 @@
     "fsevents": "^2.3.2"
   },
   "peerDependencies": {
-    "drizzle-orm": ">=0.30.0"
+    "drizzle-orm": ">=0.30.0",
+    "express": "^4.17.0 || ^5.0.0"
   },
   "peerDependenciesMeta": {
     "drizzle-orm": {
       "optional": true
+    },
+    "express": {
+      "optional": false
     }
   }
 }
