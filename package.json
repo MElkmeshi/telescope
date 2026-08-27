@@ -1,7 +1,10 @@
 {
-  "name": "@damianchojnacki/telescope",
+  "name": "@melkmeshi/telescope",
   "description": "An elegant debug assistant for Node.js (based on Laravel Telescope).",
   "author": "Damian Chojnacki <damianchojnacki@op.pl> (https://damianchojnacki.com)",
+  "contributors": [
+    "Mohamed Elkmeshi"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",

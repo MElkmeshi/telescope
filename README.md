@@ -3,9 +3,21 @@
 <p align="center">
     <img src="https://img.shields.io/badge/express-%3E%3D%204.0.0-blue" alt="Express version >= 4.0.0"/>
     <img src="https://img.shields.io/badge/license-MIT-brightgreen" alt="License MIT"/>
-    <img src="https://img.shields.io/npm/dm/@damianchojnacki/telescope" alt="Downloads"/>
-    <img src="https://img.shields.io/github/workflow/status/damianchojnacki/telescope/Node.js%20CI" alt="Build"/>
+    <img src="https://img.shields.io/npm/dm/@melkmeshi/telescope" alt="Downloads"/>
+    <img src="https://img.shields.io/github/workflow/status/MElkmeshi/telescope/Node.js%20CI" alt="Build"/>
 </p>
+
+> **This is a fork.** Upstream is
+> [damianchojnacki/telescope](https://github.com/damianchojnacki/telescope) by
+> Damian Chojnacki, published as `@damianchojnacki/telescope`. This fork is
+> published as `@melkmeshi/telescope` and adds, on top of upstream:
+>
+> - the dark theme matched to Laravel Telescope's palette
+> - request details split into separate request and response cards
+> - response headers captured, with `set-cookie` and configured
+>   `paramsToHide` masked before storage
+>
+> Both remain MIT licensed; see `LICENSE.md` for the original copyright.
 
 ## Introduction
 Node.js Telescope is an elegant debug assistant based on Telescope for Laravel framework. 
@@ -21,14 +33,14 @@ wonderful companion to your local development environment.
 ### 1. Installation
 
 ```npm
-npm i @damianchojnacki/telescope
+npm i @melkmeshi/telescope
 ```
 
 ### 2. Usage
 Setup Telescope BEFORE any route. Setup ErrorWatcher if needed at the end.
 
 ```javascript
-import Telescope, { ErrorWatcher } from '@damianchojnacki/telescope'
+import Telescope, { ErrorWatcher } from '@melkmeshi/telescope'
 
 const app = express()
 
@@ -82,7 +94,7 @@ Logs unhandled errors.
 Saves dump messages.
 
 ```javascript
-import { dump } from "@damianchojnacki/telescope"
+import { dump } from "@melkmeshi/telescope"
 
 dump("foo")
 ```
@@ -168,7 +180,7 @@ If paramsToFilter matches request param it will be converted to *******.
 #### Database drivers
 Customizing database driver:
 ```javascript
-import { MemoryDriver } from "@damianchojnacki/telescope"
+import { MemoryDriver } from "@melkmeshi/telescope"
 
 const telescope = Telescope.setup(app, {
     databaseDriver: MemoryDriver
@@ -203,7 +215,7 @@ cannot report how long it took:
 ```javascript
 import { Pool } from 'pg'
 import { drizzle } from 'drizzle-orm/node-postgres'
-import { wrapPool } from '@damianchojnacki/telescope/drizzle'
+import { wrapPool } from '@melkmeshi/telescope/drizzle'
 
 const pool = wrapPool(new Pool({ connectionString }), telescope)
 
