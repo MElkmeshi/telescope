@@ -33,6 +33,11 @@ export default class LogWatcher
 {
     public static entryType = WatcherEntryCollectionType.log
 
+    // Kept so repeated setup() re-wraps the original console methods rather
+    // than wrapping the previous wrapper.
+    private static originalLog?: typeof console.log
+    private static originalWarn?: typeof console.warn
+
     private data: LogWatcherData
 
     constructor(data: any[], level: LogLevel)
@@ -47,7 +52,7 @@ export default class LogWatcher
 
     public static capture(telescope: Telescope)
     {
-        const oldLog = console.log
+        const oldLog = LogWatcher.originalLog ??= console.log
 
         console.log = (...data: any[]) => {
             oldLog(...data)
@@ -62,7 +67,7 @@ export default class LogWatcher
             watcher.save()
         }
 
-        const oldWarn = console.warn
+        const oldWarn = LogWatcher.originalWarn ??= console.warn
 
         console.warn = (...data: any[]) => {
             oldWarn(...data)

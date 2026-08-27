@@ -4,6 +4,7 @@ import WatcherEntry, {WatcherEntryCollectionType, WatcherEntryDataType} from "..
 import {hostname} from "os"
 import Telescope from "../Telescope.js"
 import {currentBatchId} from "../context.js"
+import {ResolvedConfig} from "../config.js"
 
 export type HeadersType = Record<string, string | number | boolean | string[] | null>
 
@@ -30,15 +31,21 @@ export class ClientRequestWatcherEntry extends WatcherEntry<ClientRequestWatcher
 export default class ClientRequestWatcher
 {
     public static entryType = WatcherEntryCollectionType.clientRequest
-    public static ignoreUrls: string[] = []
+
+    // axios is a process-wide singleton, so the registration must be tracked
+    // globally too - otherwise repeated setup() stacks interceptors and stale
+    // ones keep recording with their own captured config.
+    private static interceptorId?: number
 
     private request: AxiosRequestConfig
     private response: AxiosResponse
+    private config: ResolvedConfig
 
-    constructor(request: AxiosRequestConfig, response: AxiosResponse)
+    constructor(request: AxiosRequestConfig, response: AxiosResponse, config: ResolvedConfig)
     {
         this.request = request
         this.response = response
+        this.config = config
     }
 
     public static capture(telescope: Telescope)
@@ -46,15 +53,19 @@ export default class ClientRequestWatcher
         // axios threads the originating config through to both handlers, so
         // there is no need to stash it between them - a shared slot would
         // mispair concurrent calls.
-        axios.interceptors.response.use(async (response) => {
-            const watcher = new ClientRequestWatcher(response.config, response)
+        if (ClientRequestWatcher.interceptorId !== undefined) {
+            axios.interceptors.response.eject(ClientRequestWatcher.interceptorId)
+        }
+
+        ClientRequestWatcher.interceptorId = axios.interceptors.response.use(async (response) => {
+            const watcher = new ClientRequestWatcher(response.config, response, telescope.config)
 
             !watcher.shouldIgnore() && await watcher.save()
 
             return response
         }, async (error: any) => {
             if (error.config && error.response) {
-                const watcher = new ClientRequestWatcher(error.config, error.response)
+                const watcher = new ClientRequestWatcher(error.config, error.response, telescope.config)
 
                 !watcher.shouldIgnore() && await watcher.save()
             }
@@ -116,7 +127,7 @@ export default class ClientRequestWatcher
 
     private shouldIgnore(): boolean
     {
-        const checks = ClientRequestWatcher.ignoreUrls.map((url) => {
+        const checks = this.config.clientIgnoreUrls.map((url) => {
             return url.endsWith('*') ? this.request.url?.startsWith(url.slice(0, -1)) : this.request.url === url
         })
 

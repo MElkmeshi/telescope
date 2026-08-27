@@ -9,7 +9,7 @@ import bodyParser from "body-parser"
 
 describe('RequestWatcher', () => {
     beforeEach(async () => {
-        DB.driver = MemoryDriver
+        DB.configure(MemoryDriver)
 
         await DB.truncate()
     })

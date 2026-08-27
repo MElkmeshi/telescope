@@ -13,6 +13,10 @@ class DB {
     constructor() {
         DB.db = new DB.driver();
     }
+    static configure(driver) {
+        DB.driver = driver;
+        DB.db = undefined;
+    }
     static entry(name) {
         return {
             get: (take) => __awaiter(this, void 0, void 0, function* () { return (yield DB.get()).get(name, take); }),

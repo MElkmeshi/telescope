@@ -17,9 +17,10 @@ export declare class LogWatcherEntry extends WatcherEntry<LogWatcherData> {
 }
 export default class LogWatcher {
     static entryType: "logs";
+    private static originalLog?;
+    private static originalWarn?;
     private data;
-    private batchId?;
-    constructor(data: any[], level: LogLevel, batchId?: string);
+    constructor(data: any[], level: LogLevel);
     static capture(telescope: Telescope): void;
     save(): void;
     private getMessage;

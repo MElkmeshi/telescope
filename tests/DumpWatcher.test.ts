@@ -11,7 +11,7 @@ import {dump} from "../src/api/watchers/DumpWatcher.js"
 
 describe('DumpWatcher', () => {
     beforeEach(async () => {
-        DB.driver = MemoryDriver
+        DB.configure(MemoryDriver)
 
         await DB.truncate()
     })

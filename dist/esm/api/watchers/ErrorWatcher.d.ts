@@ -1,5 +1,6 @@
 import WatcherEntry from "../WatcherEntry.js";
 import Telescope from "../Telescope.js";
+import { ResolvedConfig } from "../config.js";
 export interface ErrorWatcherData {
     hostname: string;
     class: string;
@@ -15,10 +16,9 @@ export declare class ErrorWatcherEntry extends WatcherEntry<ErrorWatcherData> {
 }
 export default class ErrorWatcher {
     static entryType: "exceptions";
-    static ignoreErrors: ErrorConstructor[];
     private error;
-    private batchId?;
-    constructor(error: Error, batchId?: string);
+    private config;
+    constructor(error: Error, config: ResolvedConfig);
     static setup(telescope: Telescope): void;
     private getSameError;
     saveOrUpdate(): Promise<void>;

@@ -1,31 +1,21 @@
-import { Express, NextFunction, Request, Response } from 'express';
-import { Driver } from './DB.js';
+import { Express } from 'express';
 import ClientRequestWatcher from "./watchers/ClientRequestWatcher.js";
 import LogWatcher from "./watchers/LogWatcher.js";
-import RequestWatcher, { GetUserFunction } from "./watchers/RequestWatcher.js";
+import RequestWatcher from "./watchers/RequestWatcher.js";
 import ErrorWatcher from "./watchers/ErrorWatcher.js";
 import DumpWatcher from "./watchers/DumpWatcher.js";
+import { ResolvedConfig, TelescopeOptions } from "./config.js";
+export type { TelescopeOptions, ResolvedConfig } from "./config.js";
 export type Watcher = typeof RequestWatcher | typeof ErrorWatcher | typeof ClientRequestWatcher | typeof DumpWatcher | typeof LogWatcher;
-export interface TelescopeOptions {
-    enabledWatchers?: Watcher[];
-    databaseDriver?: Driver;
-    responseSizeLimit?: number;
-    paramsToHide?: string[];
-    ignorePaths?: string[];
-    clientIgnoreUrls?: string[];
-    ignoreErrors?: ErrorConstructor[];
-    isAuthorized?: (request: Request, response: Response, next: NextFunction) => void;
-    getUser?: GetUserFunction;
-}
 export default class Telescope {
-    private static enabledWatchers;
     app: Express;
-    batchId?: string;
-    constructor(app: Express);
+    readonly config: ResolvedConfig;
+    readonly enabledWatchers: Watcher[];
+    recording: boolean;
+    constructor(app: Express, options?: TelescopeOptions);
     static setup(app: Express, options?: TelescopeOptions): Telescope;
-    static config(options: TelescopeOptions): void;
-    private static isAuthorized;
-    static getEnabledWatchers(): string[];
+    isEnabled(watcher: Watcher): boolean;
+    getEnabledWatchers(): string[];
     private setUpApi;
     private resolveDir;
     private setUpStaticFiles;

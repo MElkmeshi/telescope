@@ -1,6 +1,7 @@
 import { AxiosRequestConfig, AxiosResponse, Method } from 'axios';
 import WatcherEntry from "../WatcherEntry.js";
 import Telescope from "../Telescope.js";
+import { ResolvedConfig } from "../config.js";
 export type HeadersType = Record<string, string | number | boolean | string[] | null>;
 export interface ClientRequestWatcherData {
     hostname: string;
@@ -17,11 +18,11 @@ export declare class ClientRequestWatcherEntry extends WatcherEntry<ClientReques
 }
 export default class ClientRequestWatcher {
     static entryType: "client-requests";
-    static ignoreUrls: string[];
-    private batchId?;
+    private static interceptorId?;
     private request;
     private response;
-    constructor(request: AxiosRequestConfig, response: AxiosResponse, batchId?: string);
+    private config;
+    constructor(request: AxiosRequestConfig, response: AxiosResponse, config: ResolvedConfig);
     static capture(telescope: Telescope): void;
     save(): Promise<void>;
     private static normalizeHeaders;

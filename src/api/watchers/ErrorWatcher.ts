@@ -6,6 +6,7 @@ import Telescope from "../Telescope.js"
 import {hostname} from "os"
 import StackUtils from "stack-utils"
 import {currentBatchId} from "../context.js"
+import {ResolvedConfig} from "../config.js"
 
 export interface ErrorWatcherData
 {
@@ -30,20 +31,21 @@ export class ErrorWatcherEntry extends WatcherEntry<ErrorWatcherData>
 export default class ErrorWatcher
 {
     public static entryType = WatcherEntryCollectionType.exception
-    public static ignoreErrors: ErrorConstructor[] = []
 
     private error: Error
+    private config: ResolvedConfig
 
-    constructor(error: Error)
+    constructor(error: Error, config: ResolvedConfig)
     {
         this.error = error
+        this.config = config
     }
 
     public static setup(telescope: Telescope)
     {
         telescope.app.use(async (error: Error, request: Request, response: Response, next: NextFunction) => {
             try{
-                const watcher = new ErrorWatcher(error)
+                const watcher = new ErrorWatcher(error, telescope.config)
 
                 if (watcher.shouldIgnore()) {
                     next(error)
@@ -62,7 +64,7 @@ export default class ErrorWatcher
         // catch async errors
         process
             .on('uncaughtException', async error => {
-                const watcher = new ErrorWatcher(error)
+                const watcher = new ErrorWatcher(error, telescope.config)
 
                 if (watcher.shouldIgnore()) {
                     return
@@ -113,7 +115,7 @@ export default class ErrorWatcher
 
     public shouldIgnore(): boolean
     {
-        return ErrorWatcher.ignoreErrors.includes(this.error.constructor as ErrorConstructor)
+        return this.config.ignoreErrors.includes(this.error.constructor as ErrorConstructor)
     }
 
     private getFileInfo()

@@ -6,12 +6,18 @@ export type Driver = new () => DatabaseDriver;
 
 class DB
 {
-    public static driver: Driver = LowDriver
-    private static db: DatabaseDriver
+    private static driver: Driver = LowDriver
+    private static db?: DatabaseDriver
 
     private constructor()
     {
         DB.db = new DB.driver()
+    }
+
+    public static configure(driver: Driver)
+    {
+        DB.driver = driver
+        DB.db = undefined
     }
 
     public static entry<T extends WatcherType, U extends WatcherEntry<T>>(name: WatcherEntryCollectionType)
@@ -65,7 +71,7 @@ class DB
             new DB()
         }
 
-        return DB.db
+        return DB.db!
     }
 }
 

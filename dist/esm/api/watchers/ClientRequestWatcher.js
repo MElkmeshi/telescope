@@ -11,35 +11,33 @@ import axios, { AxiosHeaders } from 'axios';
 import DB from "../DB.js";
 import WatcherEntry, { WatcherEntryCollectionType, WatcherEntryDataType } from "../WatcherEntry.js";
 import { hostname } from "os";
+import { currentBatchId } from "../context.js";
 export class ClientRequestWatcherEntry extends WatcherEntry {
     constructor(data, batchId) {
         super(WatcherEntryDataType.clientRequests, data, batchId);
     }
 }
 class ClientRequestWatcher {
-    constructor(request, response, batchId) {
-        this.batchId = batchId;
+    constructor(request, response, config) {
         this.request = request;
         this.response = response;
+        this.config = config;
     }
     static capture(telescope) {
-        let request = null;
-        axios.interceptors.request.use((config) => {
-            request = config;
-            return config;
-        });
-        axios.interceptors.response.use((response) => __awaiter(this, void 0, void 0, function* () {
-            if (request) {
-                const watcher = new ClientRequestWatcher(request, response, telescope.batchId);
-                !watcher.shouldIgnore() && (yield watcher.save());
-                request = null;
-            }
+        // axios threads the originating config through to both handlers, so
+        // there is no need to stash it between them - a shared slot would
+        // mispair concurrent calls.
+        if (ClientRequestWatcher.interceptorId !== undefined) {
+            axios.interceptors.response.eject(ClientRequestWatcher.interceptorId);
+        }
+        ClientRequestWatcher.interceptorId = axios.interceptors.response.use((response) => __awaiter(this, void 0, void 0, function* () {
+            const watcher = new ClientRequestWatcher(response.config, response, telescope.config);
+            !watcher.shouldIgnore() && (yield watcher.save());
             return response;
         }), (error) => __awaiter(this, void 0, void 0, function* () {
-            if (request) {
-                const watcher = new ClientRequestWatcher(request, error.response, telescope.batchId);
+            if (error.config && error.response) {
+                const watcher = new ClientRequestWatcher(error.config, error.response, telescope.config);
                 !watcher.shouldIgnore() && (yield watcher.save());
-                request = null;
             }
             return Promise.reject(error);
         }));
@@ -56,7 +54,7 @@ class ClientRequestWatcher {
                 response_status: this.response.status,
                 response_headers: ClientRequestWatcher.normalizeHeaders(this.response.headers),
                 response: this.isHtmlResponse() ? this.escapeHTML(this.response.data) : this.response.data
-            }, this.batchId);
+            }, currentBatchId());
             yield DB.clientRequests().save(entry);
         });
     }
@@ -85,7 +83,7 @@ class ClientRequestWatcher {
         return typeof contentType === 'string' && contentType.startsWith('text/html');
     }
     shouldIgnore() {
-        const checks = ClientRequestWatcher.ignoreUrls.map((url) => {
+        const checks = this.config.clientIgnoreUrls.map((url) => {
             var _a;
             return url.endsWith('*') ? (_a = this.request.url) === null || _a === void 0 ? void 0 : _a.startsWith(url.slice(0, -1)) : this.request.url === url;
         });
@@ -93,5 +91,4 @@ class ClientRequestWatcher {
     }
 }
 ClientRequestWatcher.entryType = WatcherEntryCollectionType.clientRequest;
-ClientRequestWatcher.ignoreUrls = [];
 export default ClientRequestWatcher;

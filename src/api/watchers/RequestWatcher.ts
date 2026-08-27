@@ -5,6 +5,7 @@ import WatcherEntry, {WatcherEntryCollectionType, WatcherEntryDataType} from "..
 import {hostname} from "os"
 import JSONFileSyncAdapter from "../drivers/JSONFileSyncAdapter.js"
 import {currentBatchId} from "../context.js"
+import {ResolvedConfig} from "../config.js"
 
 export const HTTPMethod = {
     GET: "GET",
@@ -56,28 +57,26 @@ export default class RequestWatcher
 {
     public static entryType = WatcherEntryCollectionType.request
 
-    public static paramsToHide: string[] = ['password', 'token', '_csrf']
-    public static ignorePaths: string[] = []
-    public static responseSizeLimit = 64
-
     private request: Request
     private response: Response
     public responseBody: any = ''
     private startTime: [number, number]
     private getUser?: GetUserFunction
+    private config: ResolvedConfig
     public controllerAction?: string
 
-    constructor(request: Request, response: Response, getUser?: GetUserFunction)
+    constructor(request: Request, response: Response, config: ResolvedConfig)
     {
         this.request = request
         this.response = response
         this.startTime = process.hrtime()
-        this.getUser = getUser
+        this.config = config
+        this.getUser = config.getUser
     }
 
-    public static capture(request: Request, response: Response, getUser?: GetUserFunction)
+    public static capture(request: Request, response: Response, config: ResolvedConfig)
     {
-        const watcher = new RequestWatcher(request, response, getUser)
+        const watcher = new RequestWatcher(request, response, config)
 
         if (watcher.shouldIgnore()) {
             return
@@ -134,7 +133,7 @@ export default class RequestWatcher
 
     private filter(params: object, key: string): object
     {
-        if (params.hasOwnProperty(key) && RequestWatcher.paramsToHide.includes(key)) {
+        if (params.hasOwnProperty(key) && this.config.paramsToHide.includes(key)) {
             return Object.assign(params, {[key]: '********'})
         }
 
@@ -143,7 +142,7 @@ export default class RequestWatcher
 
     private contentWithinLimits(content: any): any
     {
-        return JSON.stringify(content, JSONFileSyncAdapter.getRefReplacer()).length > (1000 * RequestWatcher.responseSizeLimit) ? 'Purged By Telescope' : content
+        return JSON.stringify(content, JSONFileSyncAdapter.getRefReplacer()).length > (1000 * this.config.responseSizeLimit) ? 'Purged By Telescope' : content
     }
 
     public async save()
@@ -168,7 +167,7 @@ export default class RequestWatcher
 
     public shouldIgnore(): boolean
     {
-        const checks = RequestWatcher.ignorePaths.map((path) => {
+        const checks = this.config.ignorePaths.map((path) => {
             return path.endsWith('*') ? this.request.path.startsWith(path.slice(0, -1)) : this.request.path === path
         })
 

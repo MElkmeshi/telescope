@@ -11,7 +11,7 @@ import StackUtils from "stack-utils"
 
 describe('ErrorWatcher', () => {
     beforeEach(async () => {
-        DB.driver = MemoryDriver
+        DB.configure(MemoryDriver)
 
         await DB.truncate()
     })

@@ -12,20 +12,21 @@ import { existsSync, readFileSync } from "fs";
 import WatcherEntry, { WatcherEntryCollectionType, WatcherEntryDataType } from "../WatcherEntry.js";
 import { hostname } from "os";
 import StackUtils from "stack-utils";
+import { currentBatchId } from "../context.js";
 export class ErrorWatcherEntry extends WatcherEntry {
     constructor(data, batchId) {
         super(WatcherEntryDataType.exceptions, data, batchId);
     }
 }
 class ErrorWatcher {
-    constructor(error, batchId) {
+    constructor(error, config) {
         this.error = error;
-        this.batchId = batchId;
+        this.config = config;
     }
     static setup(telescope) {
         telescope.app.use((error, request, response, next) => __awaiter(this, void 0, void 0, function* () {
             try {
-                const watcher = new ErrorWatcher(error, telescope.batchId);
+                const watcher = new ErrorWatcher(error, telescope.config);
                 if (watcher.shouldIgnore()) {
                     next(error);
                     return;
@@ -40,7 +41,7 @@ class ErrorWatcher {
         // catch async errors
         process
             .on('uncaughtException', (error) => __awaiter(this, void 0, void 0, function* () {
-            const watcher = new ErrorWatcher(error, telescope.batchId);
+            const watcher = new ErrorWatcher(error, telescope.config);
             if (watcher.shouldIgnore()) {
                 return;
             }
@@ -70,7 +71,7 @@ class ErrorWatcher {
                 line: this.getFileInfo().line,
                 line_preview: this.getLinePreview(),
                 occurrences: ((_a = error === null || error === void 0 ? void 0 : error.content.occurrences) !== null && _a !== void 0 ? _a : 0) + 1,
-            }, this.batchId);
+            }, currentBatchId());
             error ? yield DB.errors().update(index, entry) : yield DB.errors().save(entry);
         });
     }
@@ -80,7 +81,7 @@ class ErrorWatcher {
             error.content.file === this.getFileInfo().file;
     }
     shouldIgnore() {
-        return ErrorWatcher.ignoreErrors.includes(this.error.constructor);
+        return this.config.ignoreErrors.includes(this.error.constructor);
     }
     getFileInfo() {
         var _a, _b, _c, _d;
@@ -117,5 +118,4 @@ class ErrorWatcher {
     }
 }
 ErrorWatcher.entryType = WatcherEntryCollectionType.exception;
-ErrorWatcher.ignoreErrors = [];
 export default ErrorWatcher;

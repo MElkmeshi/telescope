@@ -7,7 +7,7 @@ import {WatcherEntryCollectionType} from "../src/api/WatcherEntry.js"
 
 describe('concurrent requests', () => {
     beforeEach(async () => {
-        DB.driver = MemoryDriver
+        DB.configure(MemoryDriver)
 
         await DB.truncate()
     })

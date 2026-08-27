@@ -2,6 +2,7 @@ import DB from "../DB.js";
 import WatcherEntry, { WatcherEntryCollectionType, WatcherEntryDataType } from "../WatcherEntry.js";
 import { hostname } from "os";
 import JSONFileSyncAdapter from "../drivers/JSONFileSyncAdapter.js";
+import { currentBatchId } from "../context.js";
 export const LogLevel = {
     INFO: "info",
     WARNING: "warning",
@@ -13,8 +14,7 @@ export class LogWatcherEntry extends WatcherEntry {
     }
 }
 class LogWatcher {
-    constructor(data, level, batchId) {
-        this.batchId = batchId;
+    constructor(data, level) {
         this.data = {
             hostname: hostname(),
             level,
@@ -23,20 +23,21 @@ class LogWatcher {
         };
     }
     static capture(telescope) {
-        const oldLog = console.log;
+        var _a, _b;
+        const oldLog = (_a = LogWatcher.originalLog) !== null && _a !== void 0 ? _a : (LogWatcher.originalLog = console.log);
         console.log = (...data) => {
             oldLog(...data);
             if (typeof data[0] == 'string') {
                 data[0] = data[0].split('[32m').join('');
                 data[0] = data[0].split('[39m').join('');
             }
-            const watcher = new LogWatcher(data, LogLevel.INFO, telescope.batchId);
+            const watcher = new LogWatcher(data, LogLevel.INFO);
             watcher.save();
         };
-        const oldWarn = console.warn;
+        const oldWarn = (_b = LogWatcher.originalWarn) !== null && _b !== void 0 ? _b : (LogWatcher.originalWarn = console.warn);
         console.warn = (...data) => {
             oldWarn(...data);
-            const watcher = new LogWatcher(data, LogLevel.WARNING, telescope.batchId);
+            const watcher = new LogWatcher(data, LogLevel.WARNING);
             watcher.save();
         };
         /* console.error handles ErrorWatcher
@@ -45,14 +46,14 @@ class LogWatcher {
         console.error = (...data: any[]) => {
             oldError(...data)
 
-            const watcher = new LogWatcher(data, LogLevel.ERROR, telescope.batchId)
+            const watcher = new LogWatcher(data, LogLevel.ERROR)
 
             watcher.save()
         }
         */
     }
     save() {
-        const entry = new LogWatcherEntry(this.data, this.batchId);
+        const entry = new LogWatcherEntry(this.data, currentBatchId());
         DB.logs().save(entry);
     }
     getMessage(data) {

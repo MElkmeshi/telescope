@@ -11,6 +11,7 @@ import DB from "../DB.js";
 import WatcherEntry, { WatcherEntryCollectionType, WatcherEntryDataType } from "../WatcherEntry.js";
 import { hostname } from "os";
 import JSONFileSyncAdapter from "../drivers/JSONFileSyncAdapter.js";
+import { currentBatchId } from "../context.js";
 export const HTTPMethod = {
     GET: "GET",
     HEAD: "HEAD",
@@ -25,16 +26,16 @@ export class RequestWatcherEntry extends WatcherEntry {
     }
 }
 class RequestWatcher {
-    constructor(request, response, batchId, getUser) {
+    constructor(request, response, config) {
         this.responseBody = '';
-        this.batchId = batchId;
         this.request = request;
         this.response = response;
         this.startTime = process.hrtime();
-        this.getUser = getUser;
+        this.config = config;
+        this.getUser = config.getUser;
     }
-    static capture(request, response, batchId, getUser) {
-        const watcher = new RequestWatcher(request, response, batchId, getUser);
+    static capture(request, response, config) {
+        const watcher = new RequestWatcher(request, response, config);
         if (watcher.shouldIgnore()) {
             return;
         }
@@ -68,13 +69,13 @@ class RequestWatcher {
         return this.request.body;
     }
     filter(params, key) {
-        if (params.hasOwnProperty(key) && RequestWatcher.paramsToHide.includes(key)) {
+        if (params.hasOwnProperty(key) && this.config.paramsToHide.includes(key)) {
             return Object.assign(params, { [key]: '********' });
         }
         return params;
     }
     contentWithinLimits(content) {
-        return JSON.stringify(content, JSONFileSyncAdapter.getRefReplacer()).length > (1000 * RequestWatcher.responseSizeLimit) ? 'Purged By Telescope' : content;
+        return JSON.stringify(content, JSONFileSyncAdapter.getRefReplacer()).length > (1000 * this.config.responseSizeLimit) ? 'Purged By Telescope' : content;
     }
     save() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -92,19 +93,16 @@ class RequestWatcher {
                 response: this.responseBody,
                 user: this.getUser ? ((_a = yield this.getUser(this.request)) !== null && _a !== void 0 ? _a : undefined) : undefined,
                 controllerAction: this.controllerAction
-            }, this.batchId);
+            }, currentBatchId());
             yield DB.requests().save(entry);
         });
     }
     shouldIgnore() {
-        const checks = RequestWatcher.ignorePaths.map((path) => {
+        const checks = this.config.ignorePaths.map((path) => {
             return path.endsWith('*') ? this.request.path.startsWith(path.slice(0, -1)) : this.request.path === path;
         });
         return checks.includes(true);
     }
 }
 RequestWatcher.entryType = WatcherEntryCollectionType.request;
-RequestWatcher.paramsToHide = ['password', 'token', '_csrf'];
-RequestWatcher.ignorePaths = [];
-RequestWatcher.responseSizeLimit = 64;
 export default RequestWatcher;

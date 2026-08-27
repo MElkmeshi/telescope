@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { IncomingHttpHeaders } from "http";
 import WatcherEntry from "../WatcherEntry.js";
+import { ResolvedConfig } from "../config.js";
 export declare const HTTPMethod: {
     readonly GET: "GET";
     readonly HEAD: "HEAD";
@@ -37,18 +38,15 @@ export declare class RequestWatcherEntry extends WatcherEntry<RequestWatcherData
 }
 export default class RequestWatcher {
     static entryType: "requests";
-    static paramsToHide: string[];
-    static ignorePaths: string[];
-    static responseSizeLimit: number;
-    private batchId?;
     private request;
     private response;
     responseBody: any;
     private startTime;
     private getUser?;
+    private config;
     controllerAction?: string;
-    constructor(request: Request, response: Response, batchId?: string, getUser?: GetUserFunction);
-    static capture(request: Request, response: Response, batchId?: string, getUser?: GetUserFunction): void;
+    constructor(request: Request, response: Response, config: ResolvedConfig);
+    static capture(request: Request, response: Response, config: ResolvedConfig): void;
     private getMemoryUsage;
     private getDurationInMs;
     private getPayload;
