@@ -1,14 +1,15 @@
 import { Request, Response } from "express";
 import { IncomingHttpHeaders } from "http";
-import WatcherEntry, { WatcherEntryCollectionType } from "../WatcherEntry.js";
-export declare enum HTTPMethod {
-    GET = "GET",
-    HEAD = "HEAD",
-    POST = "POST",
-    PUT = "PUT",
-    PATCH = "PATCH",
-    DELETE = "DELETE"
-}
+import WatcherEntry from "../WatcherEntry.js";
+export declare const HTTPMethod: {
+    readonly GET: "GET";
+    readonly HEAD: "HEAD";
+    readonly POST: "POST";
+    readonly PUT: "PUT";
+    readonly PATCH: "PATCH";
+    readonly DELETE: "DELETE";
+};
+export type HTTPMethod = typeof HTTPMethod[keyof typeof HTTPMethod];
 export type GetUserFunction = (request: any) => User | Promise<User>;
 export interface User {
     id: string | number;
@@ -35,7 +36,7 @@ export declare class RequestWatcherEntry extends WatcherEntry<RequestWatcherData
     constructor(data: RequestWatcherData, batchId?: string);
 }
 export default class RequestWatcher {
-    static entryType: WatcherEntryCollectionType;
+    static entryType: "requests";
     static paramsToHide: string[];
     static ignorePaths: string[];
     static responseSizeLimit: number;

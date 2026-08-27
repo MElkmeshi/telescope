@@ -3,7 +3,7 @@ import DB, {Driver} from './DB.js'
 import ClientRequestWatcher from "./watchers/ClientRequestWatcher.js"
 import LogWatcher from "./watchers/LogWatcher.js"
 import RequestWatcher, {GetUserFunction} from "./watchers/RequestWatcher.js"
-import {v4 as uuidv4} from "uuid"
+import {randomUUID} from "node:crypto"
 import {WatcherEntryCollectionType} from "./WatcherEntry.js"
 import ErrorWatcher from "./watchers/ErrorWatcher.js"
 import DumpWatcher from "./watchers/DumpWatcher.js"
@@ -62,7 +62,7 @@ export default class Telescope
         telescope.setUpStaticFiles()
 
         app.use((request, response, next) => {
-            telescope.batchId = uuidv4()
+            telescope.batchId = randomUUID()
 
             Telescope.enabledWatchers.includes(RequestWatcher)
             && RequestWatcher.capture(request, response, telescope.batchId, options?.getUser)

@@ -1,4 +1,4 @@
-import WatcherEntry, { WatcherEntryCollectionType } from "../WatcherEntry.js";
+import WatcherEntry from "../WatcherEntry.js";
 import Telescope from "../Telescope.js";
 export interface ErrorWatcherData {
     hostname: string;
@@ -14,7 +14,7 @@ export declare class ErrorWatcherEntry extends WatcherEntry<ErrorWatcherData> {
     constructor(data: ErrorWatcherData, batchId?: string);
 }
 export default class ErrorWatcher {
-    static entryType: WatcherEntryCollectionType;
+    static entryType: "exceptions";
     static ignoreErrors: ErrorConstructor[];
     private error;
     private batchId?;

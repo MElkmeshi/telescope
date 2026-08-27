@@ -2,12 +2,11 @@ import DB from "../DB.js";
 import WatcherEntry, { WatcherEntryCollectionType, WatcherEntryDataType } from "../WatcherEntry.js";
 import { hostname } from "os";
 import JSONFileSyncAdapter from "../drivers/JSONFileSyncAdapter.js";
-export var LogLevel;
-(function (LogLevel) {
-    LogLevel["INFO"] = "info";
-    LogLevel["WARNING"] = "warning";
-    LogLevel["ERROR"] = "error";
-})(LogLevel || (LogLevel = {}));
+export const LogLevel = {
+    INFO: "info",
+    WARNING: "warning",
+    ERROR: "error",
+};
 export class LogWatcherEntry extends WatcherEntry {
     constructor(data, batchId) {
         super(WatcherEntryDataType.logs, data, batchId);

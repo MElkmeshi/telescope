@@ -1,4 +1,4 @@
-import {v4 as uuidv4} from "uuid"
+import {randomUUID} from "node:crypto"
 import {RequestWatcherData} from "./watchers/RequestWatcher.js"
 import {ErrorWatcherData} from "./watchers/ErrorWatcher.js"
 import {DumpWatcherData} from "./watchers/DumpWatcher.js"
@@ -47,7 +47,7 @@ export default abstract class WatcherEntry<T extends WatcherType>
 
     protected constructor(name: WatcherEntryDataType, data: T, batchId?: string)
     {
-        this.id = uuidv4()
+        this.id = randomUUID()
         this.created_at = new Date().toISOString()
         this.family_hash = ''
         this.sequence = Math.round(Math.random() * 100000)

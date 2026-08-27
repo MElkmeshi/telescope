@@ -1,5 +1,5 @@
 import { AxiosRequestConfig, AxiosResponse, Method } from 'axios';
-import WatcherEntry, { WatcherEntryCollectionType } from "../WatcherEntry.js";
+import WatcherEntry from "../WatcherEntry.js";
 import Telescope from "../Telescope.js";
 export type HeadersType = Record<string, string | number | boolean | string[] | null>;
 export interface ClientRequestWatcherData {
@@ -16,7 +16,7 @@ export declare class ClientRequestWatcherEntry extends WatcherEntry<ClientReques
     constructor(data: ClientRequestWatcherData, batchId?: string);
 }
 export default class ClientRequestWatcher {
-    static entryType: WatcherEntryCollectionType;
+    static entryType: "client-requests";
     static ignoreUrls: string[];
     private batchId?;
     private request;

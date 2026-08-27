@@ -11,15 +11,14 @@ import DB from "../DB.js";
 import WatcherEntry, { WatcherEntryCollectionType, WatcherEntryDataType } from "../WatcherEntry.js";
 import { hostname } from "os";
 import JSONFileSyncAdapter from "../drivers/JSONFileSyncAdapter.js";
-export var HTTPMethod;
-(function (HTTPMethod) {
-    HTTPMethod["GET"] = "GET";
-    HTTPMethod["HEAD"] = "HEAD";
-    HTTPMethod["POST"] = "POST";
-    HTTPMethod["PUT"] = "PUT";
-    HTTPMethod["PATCH"] = "PATCH";
-    HTTPMethod["DELETE"] = "DELETE";
-})(HTTPMethod || (HTTPMethod = {}));
+export const HTTPMethod = {
+    GET: "GET",
+    HEAD: "HEAD",
+    POST: "POST",
+    PUT: "PUT",
+    PATCH: "PATCH",
+    DELETE: "DELETE",
+};
 export class RequestWatcherEntry extends WatcherEntry {
     constructor(data, batchId) {
         super(WatcherEntryDataType.requests, data, batchId);

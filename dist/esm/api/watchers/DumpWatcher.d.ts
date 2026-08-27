@@ -1,4 +1,4 @@
-import WatcherEntry, { WatcherEntryCollectionType } from "../WatcherEntry.js";
+import WatcherEntry from "../WatcherEntry.js";
 export interface DumpWatcherData {
     dump: string;
 }
@@ -7,7 +7,7 @@ export declare class DumpWatcherEntry extends WatcherEntry<DumpWatcherData> {
 }
 export declare function dump(data: any): void;
 export default class DumpWatcher {
-    static entryType: WatcherEntryCollectionType;
+    static entryType: "dumps";
     private data;
     constructor(data: any);
     save(): void;

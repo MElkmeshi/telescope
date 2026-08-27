@@ -12,7 +12,7 @@ import DB from './DB.js';
 import ClientRequestWatcher from "./watchers/ClientRequestWatcher.js";
 import LogWatcher from "./watchers/LogWatcher.js";
 import RequestWatcher from "./watchers/RequestWatcher.js";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "node:crypto";
 import ErrorWatcher from "./watchers/ErrorWatcher.js";
 import DumpWatcher from "./watchers/DumpWatcher.js";
 import { existsSync } from "fs";
@@ -28,7 +28,7 @@ class Telescope {
         telescope.setUpApi();
         telescope.setUpStaticFiles();
         app.use((request, response, next) => {
-            telescope.batchId = uuidv4();
+            telescope.batchId = randomUUID();
             Telescope.enabledWatchers.includes(RequestWatcher)
                 && RequestWatcher.capture(request, response, telescope.batchId, options === null || options === void 0 ? void 0 : options.getUser);
             next();

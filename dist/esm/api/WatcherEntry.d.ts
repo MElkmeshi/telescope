@@ -3,20 +3,22 @@ import { ErrorWatcherData } from "./watchers/ErrorWatcher.js";
 import { DumpWatcherData } from "./watchers/DumpWatcher.js";
 import { LogWatcherData } from "./watchers/LogWatcher.js";
 import { ClientRequestWatcherData } from "./watchers/ClientRequestWatcher.js";
-export declare enum WatcherEntryDataType {
-    requests = "request",
-    exceptions = "exception",
-    dumps = "dump",
-    logs = "log",
-    clientRequests = "client-request"
-}
-export declare enum WatcherEntryCollectionType {
-    request = "requests",
-    exception = "exceptions",
-    dump = "dumps",
-    log = "logs",
-    clientRequest = "client-requests"
-}
+export declare const WatcherEntryDataType: {
+    readonly requests: "request";
+    readonly exceptions: "exception";
+    readonly dumps: "dump";
+    readonly logs: "log";
+    readonly clientRequests: "client-request";
+};
+export type WatcherEntryDataType = typeof WatcherEntryDataType[keyof typeof WatcherEntryDataType];
+export declare const WatcherEntryCollectionType: {
+    readonly request: "requests";
+    readonly exception: "exceptions";
+    readonly dump: "dumps";
+    readonly log: "logs";
+    readonly clientRequest: "client-requests";
+};
+export type WatcherEntryCollectionType = typeof WatcherEntryCollectionType[keyof typeof WatcherEntryCollectionType];
 export type WatcherType = RequestWatcherData | ErrorWatcherData | DumpWatcherData | ClientRequestWatcherData | LogWatcherData;
 export default abstract class WatcherEntry<T extends WatcherType> {
     content: any;

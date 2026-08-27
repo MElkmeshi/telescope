@@ -1,23 +1,21 @@
-import { v4 as uuidv4 } from "uuid";
-export var WatcherEntryDataType;
-(function (WatcherEntryDataType) {
-    WatcherEntryDataType["requests"] = "request";
-    WatcherEntryDataType["exceptions"] = "exception";
-    WatcherEntryDataType["dumps"] = "dump";
-    WatcherEntryDataType["logs"] = "log";
-    WatcherEntryDataType["clientRequests"] = "client-request";
-})(WatcherEntryDataType || (WatcherEntryDataType = {}));
-export var WatcherEntryCollectionType;
-(function (WatcherEntryCollectionType) {
-    WatcherEntryCollectionType["request"] = "requests";
-    WatcherEntryCollectionType["exception"] = "exceptions";
-    WatcherEntryCollectionType["dump"] = "dumps";
-    WatcherEntryCollectionType["log"] = "logs";
-    WatcherEntryCollectionType["clientRequest"] = "client-requests";
-})(WatcherEntryCollectionType || (WatcherEntryCollectionType = {}));
+import { randomUUID } from "node:crypto";
+export const WatcherEntryDataType = {
+    requests: "request",
+    exceptions: "exception",
+    dumps: "dump",
+    logs: "log",
+    clientRequests: "client-request",
+};
+export const WatcherEntryCollectionType = {
+    request: "requests",
+    exception: "exceptions",
+    dump: "dumps",
+    log: "logs",
+    clientRequest: "client-requests",
+};
 export default class WatcherEntry {
     constructor(name, data, batchId) {
-        this.id = uuidv4();
+        this.id = randomUUID();
         this.created_at = new Date().toISOString();
         this.family_hash = '';
         this.sequence = Math.round(Math.random() * 100000);
