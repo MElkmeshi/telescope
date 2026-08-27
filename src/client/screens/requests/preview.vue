@@ -4,7 +4,11 @@
             return {
                 entry: null,
                 batch: [],
-                currentTab: 'payload'
+                // Request and response each own their tab state, so switching
+                // the response view does not throw away the payload you were
+                // reading — the two cards are meant to be read side by side.
+                currentRequestTab: 'payload',
+                currentResponseTab: 'response'
             };
         }
     }
@@ -71,26 +75,38 @@
         </template>
 
         <div slot="after-attributes-card" slot-scope="slotProps">
-            <div class="card mt-5">
+            <!-- What came in -->
+            <div class="card mt-5 overflow-hidden">
                 <ul class="nav nav-pills">
                     <li class="nav-item">
-                        <a class="nav-link" :class="{active: currentTab=='payload'}" href="#" v-on:click.prevent="currentTab='payload'">Payload</a>
+                        <a class="nav-link" :class="{active: currentRequestTab=='payload'}" href="#" v-on:click.prevent="currentRequestTab='payload'">Payload</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" :class="{active: currentTab=='headers'}" href="#" v-on:click.prevent="currentTab='headers'">Headers</a>
-                    </li>
-                    <li class="nav-item" v-if="slotProps.entry.content.session">
-                        <a class="nav-link" :class="{active: currentTab=='session'}" href="#" v-on:click.prevent="currentTab='session'">Session</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" :class="{active: currentTab=='response'}" href="#" v-on:click.prevent="currentTab='response'">Response</a>
+                        <a class="nav-link" :class="{active: currentRequestTab=='headers'}" href="#" v-on:click.prevent="currentRequestTab='headers'">Headers</a>
                     </li>
                 </ul>
                 <div class="code-bg p-4 mb-0 text-white">
-                    <vue-json-pretty :data="slotProps.entry.content.payload" v-if="currentTab=='payload'"></vue-json-pretty>
-                    <vue-json-pretty :data="slotProps.entry.content.headers" v-if="currentTab=='headers'"></vue-json-pretty>
-                    <vue-json-pretty :data="slotProps.entry.content.session" v-if="currentTab=='session'"></vue-json-pretty>
-                    <vue-json-pretty :data="slotProps.entry.content.response" v-if="currentTab=='response'"></vue-json-pretty>
+                    <vue-json-pretty :data="slotProps.entry.content[currentRequestTab]"></vue-json-pretty>
+                </div>
+            </div>
+
+            <!-- What went out -->
+            <div class="card mt-5 overflow-hidden">
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <a class="nav-link" :class="{active: currentResponseTab=='response'}" href="#" v-on:click.prevent="currentResponseTab='response'">Response</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" :class="{active: currentResponseTab=='response_headers'}" href="#" v-on:click.prevent="currentResponseTab='response_headers'">Headers</a>
+                    </li>
+                    <!-- Guarded: this port has no session watcher, so the tab
+                         only appears once something actually records one. -->
+                    <li class="nav-item" v-if="slotProps.entry.content.session">
+                        <a class="nav-link" :class="{active: currentResponseTab=='session'}" href="#" v-on:click.prevent="currentResponseTab='session'">Session</a>
+                    </li>
+                </ul>
+                <div class="code-bg p-4 mb-0 text-white">
+                    <vue-json-pretty :data="slotProps.entry.content[currentResponseTab]"></vue-json-pretty>
                 </div>
             </div>
 
