@@ -68,6 +68,28 @@ class RequestWatcher {
         Object.keys((_a = this.request.body) !== null && _a !== void 0 ? _a : {}).map((key) => this.filter(this.request.body, key));
         return this.request.body;
     }
+    /**
+     * Response headers, with credential-bearing ones masked.
+     *
+     * `set-cookie` is masked unconditionally: it is a session credential by
+     * definition, and this panel renders it in plain text. Everything else is
+     * matched against the configured paramsToHide. Node lower-cases outgoing
+     * header names, so the comparison is lower-cased on both sides.
+     */
+    getResponseHeaders() {
+        const hidden = this.config.paramsToHide
+            .map((param) => param.toLowerCase())
+            .concat('set-cookie');
+        // getHeaders() already returns a shallow copy, so masking here does not
+        // touch the headers actually sent to the client.
+        const headers = this.response.getHeaders();
+        Object.keys(headers).forEach((key) => {
+            if (hidden.includes(key.toLowerCase())) {
+                headers[key] = '********';
+            }
+        });
+        return headers;
+    }
     filter(params, key) {
         if (params.hasOwnProperty(key) && this.config.paramsToHide.includes(key)) {
             return Object.assign(params, { [key]: '********' });
@@ -90,6 +112,7 @@ class RequestWatcher {
                 memory: this.getMemoryUsage(),
                 payload: this.getPayload(),
                 headers: this.request.headers,
+                response_headers: this.getResponseHeaders(),
                 response: this.responseBody,
                 user: this.getUser ? ((_a = yield this.getUser(this.request)) !== null && _a !== void 0 ? _a : undefined) : undefined,
                 controllerAction: this.controllerAction

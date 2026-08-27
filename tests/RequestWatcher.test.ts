@@ -152,6 +152,70 @@ describe('RequestWatcher', () => {
         expect(entry.content.payload).toEqual({foo: '********'})
     })
 
+    it('saves response headers', async () => {
+        const app = express()
+
+        Telescope.setup(app)
+
+        app.get('/', (request, response) => {
+            response.set('x-custom', 'value')
+
+            response.send('Hello world')
+        })
+
+        await request(app)
+            .get('/')
+
+        const entry = (await DB.requests().get())[0]
+
+        expect(entry.content.response_headers['x-custom']).toEqual('value')
+    })
+
+    it('hides set-cookie in response headers', async () => {
+        const app = express()
+
+        Telescope.setup(app)
+
+        app.get('/', (request, response) => {
+            response.cookie('session', 'super-secret')
+
+            response.send('Hello world')
+        })
+
+        await request(app)
+            .get('/')
+
+        const entry = (await DB.requests().get())[0]
+
+        // The panel renders these in plain text, so the session credential must
+        // never reach it — masked regardless of paramsToHide.
+        expect(entry.content.response_headers['set-cookie']).toEqual('********')
+        expect(JSON.stringify(entry.content.response_headers)).not.toContain('super-secret')
+    })
+
+    it('hides configured params in response headers', async () => {
+        const app = express()
+
+        Telescope.setup(app, {
+            paramsToHide: ['x-api-key']
+        })
+
+        app.get('/', (request, response) => {
+            response.set('X-Api-Key', 'secret-key')
+
+            response.send('Hello world')
+        })
+
+        await request(app)
+            .get('/')
+
+        const entry = (await DB.requests().get())[0]
+
+        // Express lower-cases outgoing header names, so the match must be
+        // case-insensitive on both sides.
+        expect(entry.content.response_headers['x-api-key']).toEqual('********')
+    })
+
     async function expectCorrectRequestsLogged(app: Express){
         app.get('/', (request, response) => response.send('Hello World'))
         app.get('/admin/products', (request, response) => response.send('Hello World'))

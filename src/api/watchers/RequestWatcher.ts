@@ -1,5 +1,5 @@
 import {Request, Response} from "express"
-import {IncomingHttpHeaders} from "http"
+import {IncomingHttpHeaders, OutgoingHttpHeaders} from "http"
 import DB from "../DB.js"
 import WatcherEntry, {WatcherEntryCollectionType, WatcherEntryDataType} from "../WatcherEntry.js"
 import {hostname} from "os"
@@ -40,6 +40,7 @@ export interface RequestWatcherData
     memory: number
     payload: object
     headers: IncomingHttpHeaders
+    response_headers: OutgoingHttpHeaders
     session?: object
     user?: User
     response: any
@@ -131,6 +132,33 @@ export default class RequestWatcher
         return this.request.body
     }
 
+    /**
+     * Response headers, with credential-bearing ones masked.
+     *
+     * `set-cookie` is masked unconditionally: it is a session credential by
+     * definition, and this panel renders it in plain text. Everything else is
+     * matched against the configured paramsToHide. Node lower-cases outgoing
+     * header names, so the comparison is lower-cased on both sides.
+     */
+    private getResponseHeaders(): OutgoingHttpHeaders
+    {
+        const hidden = this.config.paramsToHide
+            .map((param) => param.toLowerCase())
+            .concat('set-cookie')
+
+        // getHeaders() already returns a shallow copy, so masking here does not
+        // touch the headers actually sent to the client.
+        const headers = this.response.getHeaders()
+
+        Object.keys(headers).forEach((key) => {
+            if (hidden.includes(key.toLowerCase())) {
+                headers[key] = '********'
+            }
+        })
+
+        return headers
+    }
+
     private filter(params: object, key: string): object
     {
         if (params.hasOwnProperty(key) && this.config.paramsToHide.includes(key)) {
@@ -157,6 +185,7 @@ export default class RequestWatcher
             memory: this.getMemoryUsage(),
             payload: this.getPayload(),
             headers: this.request.headers,
+            response_headers: this.getResponseHeaders(),
             response: this.responseBody,
             user: this.getUser ? (await this.getUser(this.request) ?? undefined) : undefined,
             controllerAction: this.controllerAction

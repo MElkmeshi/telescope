@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { IncomingHttpHeaders } from "http";
+import { IncomingHttpHeaders, OutgoingHttpHeaders } from "http";
 import WatcherEntry from "../WatcherEntry.js";
 import { ResolvedConfig } from "../config.js";
 export declare const HTTPMethod: {
@@ -29,6 +29,7 @@ export interface RequestWatcherData {
     memory: number;
     payload: object;
     headers: IncomingHttpHeaders;
+    response_headers: OutgoingHttpHeaders;
     session?: object;
     user?: User;
     response: any;
@@ -52,6 +53,15 @@ export default class RequestWatcher {
     private getPayload;
     private interceptResponse;
     private getFilteredBody;
+    /**
+     * Response headers, with credential-bearing ones masked.
+     *
+     * `set-cookie` is masked unconditionally: it is a session credential by
+     * definition, and this panel renders it in plain text. Everything else is
+     * matched against the configured paramsToHide. Node lower-cases outgoing
+     * header names, so the comparison is lower-cased on both sides.
+     */
+    private getResponseHeaders;
     private filter;
     private contentWithinLimits;
     save(): Promise<void>;
