@@ -7,9 +7,10 @@ import ClientRequestWatcher, { ClientRequestWatcherData, ClientRequestWatcherEnt
 import ErrorWatcher, { ErrorWatcherData, ErrorWatcherEntry } from './api/watchers/ErrorWatcher.js';
 import DumpWatcher, { DumpWatcherData, DumpWatcherEntry } from './api/watchers/DumpWatcher.js';
 import LogWatcher, { LogWatcherData, LogWatcherEntry } from './api/watchers/LogWatcher.js';
+import QueryWatcher, { QueryWatcherData, QueryWatcherEntry, RecordedQuery } from './api/watchers/QueryWatcher.js';
 import DB, { Driver } from './api/DB.js';
-import Telescope, { TelescopeOptions, Watcher } from './api/Telescope.js';
+import Telescope, { ResolvedConfig, TelescopeOptions, Watcher } from './api/Telescope.js';
 import WatcherEntry, { WatcherEntryCollectionType, WatcherEntryDataType, WatcherType } from './api/WatcherEntry.js';
 export default Telescope;
-export { JSONFileSyncAdapter, LowDriver, MemoryDriver, RequestWatcher, RequestWatcherEntry, ClientRequestWatcher, ClientRequestWatcherEntry, ErrorWatcher, ErrorWatcherEntry, DumpWatcher, DumpWatcherEntry, LogWatcher, LogWatcherEntry, DB, WatcherEntry, WatcherEntryDataType, WatcherEntryCollectionType };
-export type { DatabaseDriver, WatcherData, RequestWatcherData, ClientRequestWatcherData, ErrorWatcherData, DumpWatcherData, LogWatcherData, HeadersType, Driver, TelescopeOptions, Watcher, WatcherType };
+export { JSONFileSyncAdapter, LowDriver, MemoryDriver, RequestWatcher, RequestWatcherEntry, ClientRequestWatcher, ClientRequestWatcherEntry, ErrorWatcher, ErrorWatcherEntry, DumpWatcher, DumpWatcherEntry, LogWatcher, LogWatcherEntry, QueryWatcher, QueryWatcherEntry, DB, WatcherEntry, WatcherEntryDataType, WatcherEntryCollectionType };
+export type { DatabaseDriver, WatcherData, RequestWatcherData, ClientRequestWatcherData, ErrorWatcherData, DumpWatcherData, LogWatcherData, QueryWatcherData, RecordedQuery, HeadersType, Driver, TelescopeOptions, ResolvedConfig, Watcher, WatcherType };

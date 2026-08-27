@@ -6,8 +6,9 @@ import ClientRequestWatcher, { ClientRequestWatcherEntry } from './api/watchers/
 import ErrorWatcher, { ErrorWatcherEntry } from './api/watchers/ErrorWatcher.js';
 import DumpWatcher, { DumpWatcherEntry } from './api/watchers/DumpWatcher.js';
 import LogWatcher, { LogWatcherEntry } from './api/watchers/LogWatcher.js';
+import QueryWatcher, { QueryWatcherEntry } from './api/watchers/QueryWatcher.js';
 import DB from './api/DB.js';
 import Telescope from './api/Telescope.js';
 import WatcherEntry, { WatcherEntryCollectionType, WatcherEntryDataType } from './api/WatcherEntry.js';
 export default Telescope;
-export { JSONFileSyncAdapter, LowDriver, MemoryDriver, RequestWatcher, RequestWatcherEntry, ClientRequestWatcher, ClientRequestWatcherEntry, ErrorWatcher, ErrorWatcherEntry, DumpWatcher, DumpWatcherEntry, LogWatcher, LogWatcherEntry, DB, WatcherEntry, WatcherEntryDataType, WatcherEntryCollectionType };
+export { JSONFileSyncAdapter, LowDriver, MemoryDriver, RequestWatcher, RequestWatcherEntry, ClientRequestWatcher, ClientRequestWatcherEntry, ErrorWatcher, ErrorWatcherEntry, DumpWatcher, DumpWatcherEntry, LogWatcher, LogWatcherEntry, QueryWatcher, QueryWatcherEntry, DB, WatcherEntry, WatcherEntryDataType, WatcherEntryCollectionType };

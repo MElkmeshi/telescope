@@ -49,11 +49,15 @@ function defaultIsAuthorized(request: Request, response: Response, next: NextFun
 
 export function resolveConfig(options: TelescopeOptions = {}): ResolvedConfig
 {
+    const path = (options.path ?? 'telescope').replace(/^\/+|\/+$/g, '')
+
     return {
         databaseDriver: options.databaseDriver ?? LowDriver,
         responseSizeLimit: options.responseSizeLimit ?? 64,
         paramsToHide: options.paramsToHide ?? ['password', 'token', '_csrf'],
-        ignorePaths: options.ignorePaths ?? [],
+        // Telescope's own UI polls its API continuously; recording that
+        // traffic floods the request list with self-inflicted noise.
+        ignorePaths: [...(options.ignorePaths ?? []), `/${path}*`],
         clientIgnoreUrls: options.clientIgnoreUrls ?? [],
         ignoreErrors: options.ignoreErrors ?? [],
         isAuthorized: options.isAuthorized ?? defaultIsAuthorized,
@@ -61,7 +65,7 @@ export function resolveConfig(options: TelescopeOptions = {}): ResolvedConfig
         // `?? true` rather than a truthiness check: `enableClient: false` is
         // the only value anyone passes, and must survive.
         enableClient: options.enableClient ?? true,
-        path: (options.path ?? 'telescope').replace(/^\/+|\/+$/g, ''),
+        path,
         slowQueryThreshold: options.slowQueryThreshold ?? 100,
         timezone: options.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
     }

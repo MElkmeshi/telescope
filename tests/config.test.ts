@@ -26,6 +26,18 @@ describe('instance configuration', () => {
         expect(telescope.config.enableClient).toBe(false)
     })
 
+    it('ignores its own routes so the client does not record itself', () => {
+        const telescope = Telescope.setup(express(), {path: '_debug'})
+
+        expect(telescope.config.ignorePaths).toContain('/_debug*')
+    })
+
+    it('keeps user-supplied ignorePaths alongside its own', () => {
+        const telescope = Telescope.setup(express(), {ignorePaths: ['/health']})
+
+        expect(telescope.config.ignorePaths).toEqual(['/health', '/telescope*'])
+    })
+
     it('normalises a path given with slashes', () => {
         const telescope = Telescope.setup(express(), {path: '/_debug/'})
 

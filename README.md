@@ -34,6 +34,8 @@ const app = express()
 
 const telescope = Telescope.setup(app)
 
+app.use('/telescope', telescope.router())
+
 app.get('/', (request, response) => {
     response.send('Hello world')
 })
@@ -42,6 +44,14 @@ ErrorWatcher.setup(telescope)
 ```
 
 Now you can access telescope panel at `/telescope`.
+
+Mount it wherever you like - just keep `path` and the mount prefix in step:
+
+```javascript
+const telescope = Telescope.setup(app, { path: '_debug' })
+
+app.use('/_debug', telescope.router())
+```
 
 #### RequestWatcher
 
@@ -183,6 +193,47 @@ update<T extends keyof WatcherType>(name: WatcherEntryCollectionType, index: num
 
 truncate(): Promise<void>
 ```
+
+### 5. Queries
+
+Telescope can record database queries with their duration. For Drizzle, wrap
+your `db` instance - Drizzle's own logger runs before a query executes and so
+cannot report how long it took:
+
+```javascript
+import { drizzle } from 'drizzle-orm/node-postgres'
+import { wrapDrizzle } from '@damianchojnacki/telescope/drizzle'
+
+const db = wrapDrizzle(drizzle(client), telescope)
+```
+
+Queries slower than `slowQueryThreshold` (default `100`ms) are flagged in the
+UI. `drizzle-orm` is an optional peer dependency; if you don't use it, you
+don't need to install it.
+
+## Upgrading to 2.0
+
+**Node 22+ and ESM only.** The CommonJS build is gone; `require()` is no
+longer supported.
+
+**Mount the router yourself.** `Telescope.setup(app)` no longer adds the UI
+routes to your app. Call `app.use('/telescope', telescope.router())` after it.
+
+**Configure by options, not statics.** Assigning to
+`RequestWatcher.responseSizeLimit`, `RequestWatcher.ignorePaths`,
+`RequestWatcher.paramsToHide`, `ClientRequestWatcher.ignoreUrls`,
+`ErrorWatcher.ignoreErrors` or `DB.driver` no longer has any effect. Pass
+these to `Telescope.setup(app, {...})` instead. `Telescope.getEnabledWatchers()`
+is now an instance method.
+
+**New options:** `path`, `enableClient`, `slowQueryThreshold`, `timezone`.
+
+**Fixed in 2.0:** logs and exceptions recorded during overlapping requests
+were attributed to the wrong request; concurrent outgoing axios calls were
+mispaired and could drop an entry entirely; timestamps used a hardcoded
+`Europe/Warsaw` timezone; the record/pause button called an endpoint that was
+never registered; client assets failed to resolve under pnpm, Yarn PnP and
+monorepos.
 
 ## License
 

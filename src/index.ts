@@ -9,8 +9,9 @@ import ErrorWatcher, {ErrorWatcherData, ErrorWatcherEntry} from './api/watchers/
 import DumpWatcher, {DumpWatcherData, DumpWatcherEntry} from './api/watchers/DumpWatcher.js'
 import LogWatcher, {LogWatcherData, LogWatcherEntry} from './api/watchers/LogWatcher.js'
 
+import QueryWatcher, {QueryWatcherData, QueryWatcherEntry, RecordedQuery} from './api/watchers/QueryWatcher.js'
 import DB, {Driver} from './api/DB.js'
-import Telescope, {TelescopeOptions, Watcher} from './api/Telescope.js'
+import Telescope, {ResolvedConfig, TelescopeOptions, Watcher} from './api/Telescope.js'
 import WatcherEntry, {WatcherEntryCollectionType, WatcherEntryDataType, WatcherType} from './api/WatcherEntry.js'
 
 export default Telescope
@@ -29,6 +30,8 @@ export {
     DumpWatcherEntry,
     LogWatcher,
     LogWatcherEntry,
+    QueryWatcher,
+    QueryWatcherEntry,
     DB,
     WatcherEntry,
     WatcherEntryDataType,
@@ -43,9 +46,12 @@ export type {
     ErrorWatcherData,
     DumpWatcherData,
     LogWatcherData,
+    QueryWatcherData,
+    RecordedQuery,
     HeadersType,
     Driver,
     TelescopeOptions,
+    ResolvedConfig,
     Watcher,
     WatcherType
 }
