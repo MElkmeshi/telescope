@@ -201,11 +201,23 @@ your `db` instance - Drizzle's own logger runs before a query executes and so
 cannot report how long it took:
 
 ```javascript
+import { Pool } from 'pg'
 import { drizzle } from 'drizzle-orm/node-postgres'
-import { wrapDrizzle } from '@damianchojnacki/telescope/drizzle'
+import { wrapPool } from '@damianchojnacki/telescope/drizzle'
 
-const db = wrapDrizzle(drizzle(client), telescope)
+const pool = wrapPool(new Pool({ connectionString }), telescope)
+
+export const db = drizzle({ client: pool })
 ```
+
+Wrap the **pool**, not the `db` object. Drizzle's query builder
+(`db.select()`, `db.insert()`, ...) executes through the pool's `query()`
+rather than through methods on `db`, so wrapping `db` would capture only raw
+`db.execute()` calls. The same wrapper covers node-postgres and Neon, which
+expose the same `query()` surface.
+
+`wrapDrizzle(db, telescope)` is also exported for the raw-`execute` path if
+you prefer to wrap there, but `wrapPool` is what captures everything.
 
 Queries slower than `slowQueryThreshold` (default `100`ms) are flagged in the
 UI. `drizzle-orm` is an optional peer dependency; if you don't use it, you

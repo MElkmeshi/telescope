@@ -19,6 +19,53 @@ function isTimed(property) {
     return typeof property === 'string'
         && TIMED_METHODS.includes(property);
 }
+/**
+ * Wraps the underlying pg/Neon pool. This is the seam that catches everything:
+ * drizzle's query builder (db.select/insert/update/delete) executes through
+ * client.query(), not through the db object's own methods, so wrapping `db`
+ * alone captures only raw db.execute() calls.
+ *
+ * Both node-postgres and Neon's serverless Pool expose the same query()
+ * surface, so one wrapper covers both drivers.
+ */
+export function wrapPool(pool, telescope) {
+    return new Proxy(pool, {
+        get(target, property, receiver) {
+            const value = Reflect.get(target, property, receiver);
+            if (property !== 'query' || typeof value !== 'function') {
+                // Pool methods rely on internal state, so keep them bound to
+                // the real pool rather than to the proxy.
+                return typeof value === 'function' ? value.bind(target) : value;
+            }
+            return (...args) => __awaiter(this, void 0, void 0, function* () {
+                const start = process.hrtime.bigint();
+                try {
+                    return yield value.apply(target, args);
+                }
+                finally {
+                    const elapsed = Number(process.hrtime.bigint() - start) / 1000000;
+                    yield QueryWatcher.record(Object.assign(Object.assign({}, describeQuery(args)), { time: Math.round(elapsed * 100) / 100, connection: 'drizzle' }), telescope.config);
+                }
+            });
+        },
+    });
+}
+/**
+ * pool.query accepts either (text, values) or a config object carrying `text`
+ * and sometimes `values`. drizzle uses the config form.
+ */
+function describeQuery(args) {
+    var _a;
+    const [query, params] = args;
+    const config = query;
+    const sql = typeof config === 'string'
+        ? config
+        : (_a = config === null || config === void 0 ? void 0 : config.text) !== null && _a !== void 0 ? _a : String(query);
+    const bindings = Array.isArray(params)
+        ? params
+        : (typeof config === 'object' && Array.isArray(config === null || config === void 0 ? void 0 : config.values) ? config.values : []);
+    return { sql, bindings };
+}
 export function wrapDrizzle(db, telescope) {
     return new Proxy(db, {
         get(target, property, receiver) {
