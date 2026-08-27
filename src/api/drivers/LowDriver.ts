@@ -11,6 +11,7 @@ export default class LowDriver implements DatabaseDriver
         exceptions: [],
         dumps: [],
         logs: [],
+        queries: [],
         "client-requests": [],
     }
 

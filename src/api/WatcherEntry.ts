@@ -4,12 +4,14 @@ import {ErrorWatcherData} from "./watchers/ErrorWatcher.js"
 import {DumpWatcherData} from "./watchers/DumpWatcher.js"
 import {LogWatcherData} from "./watchers/LogWatcher.js"
 import {ClientRequestWatcherData} from "./watchers/ClientRequestWatcher.js"
+import {QueryWatcherData} from "./watchers/QueryWatcher.js"
 
 export const WatcherEntryDataType = {
     requests: "request",
     exceptions: "exception",
     dumps: "dump",
     logs: "log",
+    queries: "query",
     clientRequests: "client-request",
 } as const
 
@@ -21,6 +23,7 @@ export const WatcherEntryCollectionType = {
     exception: "exceptions",
     dump: "dumps",
     log: "logs",
+    query: "queries",
     clientRequest: "client-requests",
 } as const
 
@@ -32,7 +35,8 @@ export type WatcherType =
     ErrorWatcherData |
     DumpWatcherData |
     ClientRequestWatcherData |
-    LogWatcherData
+    LogWatcherData |
+    QueryWatcherData
 
 export default abstract class WatcherEntry<T extends WatcherType>
 {

@@ -12,6 +12,7 @@ export default class MemoryDriver implements DatabaseDriver
             exceptions: [],
             dumps: [],
             logs: [],
+            queries: [],
             "client-requests": [],
         }
     }
@@ -56,6 +57,7 @@ export default class MemoryDriver implements DatabaseDriver
             exceptions: [],
             dumps: [],
             logs: [],
+            queries: [],
             "client-requests": [],
         }
     }
