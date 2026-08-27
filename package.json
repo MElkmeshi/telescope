@@ -25,7 +25,7 @@
     "dev": "tsx watch --ignore ./db.json src/example/index.ts",
     "build": "tsc -p tsconfig.esm.json && ./bin/build-types.sh",
     "typecheck": "tsc -p tsconfig.test.json",
-    "test": "npm run typecheck && jest"
+    "test": "npm run typecheck && NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "dependencies": {
     "axios": "^1.20.0",

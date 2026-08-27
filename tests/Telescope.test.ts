@@ -35,7 +35,9 @@ describe('Telescope', () => {
     it('serves static files', (done) => {
         const app = express()
 
-        Telescope.setup(app)
+        const telescope = Telescope.setup(app)
+
+        app.use('/telescope', telescope.router())
 
         request(app)
             .get('/telescope/app.css')
@@ -59,6 +61,8 @@ describe('Telescope', () => {
 
         const telescope = Telescope.setup(app)
 
+        app.use('/telescope', telescope.router())
+
         telescope.getEnabledWatchers().forEach((watcher: string) => {
             request(app)
                 .get(`/telescope/${watcher}`)
@@ -69,7 +73,9 @@ describe('Telescope', () => {
     it('redirects to requests page from base route', (done) => {
         const app = express()
 
-        Telescope.setup(app)
+        const telescope = Telescope.setup(app)
+
+        app.use('/telescope', telescope.router())
 
         request(app)
             .get(`/telescope`)
@@ -81,7 +87,9 @@ describe('Telescope', () => {
 
         const app = express()
 
-        Telescope.setup(app)
+        const telescope = Telescope.setup(app)
+
+        app.use('/telescope', telescope.router())
 
         request(app)
             .get(`/telescope`)
@@ -93,9 +101,11 @@ describe('Telescope', () => {
 
         const app = express()
 
-        Telescope.setup(app, {
+        const telescope = Telescope.setup(app, {
             isAuthorized: (request, response, next) => next()
         })
+
+        app.use('/telescope', telescope.router())
 
         request(app)
             .get(`/telescope/requests`)

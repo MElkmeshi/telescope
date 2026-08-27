@@ -1,4 +1,4 @@
-import { Express } from 'express';
+import { Express, Router } from 'express';
 import ClientRequestWatcher from "./watchers/ClientRequestWatcher.js";
 import LogWatcher from "./watchers/LogWatcher.js";
 import RequestWatcher from "./watchers/RequestWatcher.js";
@@ -16,7 +16,9 @@ export default class Telescope {
     static setup(app: Express, options?: TelescopeOptions): Telescope;
     isEnabled(watcher: Watcher): boolean;
     getEnabledWatchers(): string[];
-    private setUpApi;
-    private resolveDir;
-    private setUpStaticFiles;
+    /**
+     * Returns a Router for the caller to mount wherever they like. Mount it at
+     * the same prefix given as `path` so the client's generated links resolve.
+     */
+    router(): Router;
 }

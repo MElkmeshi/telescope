@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import express from 'express';
+import express, { Router } from 'express';
 import DB from './DB.js';
 import ClientRequestWatcher from "./watchers/ClientRequestWatcher.js";
 import LogWatcher from "./watchers/LogWatcher.js";
@@ -17,8 +17,8 @@ import { runWithContext } from "./context.js";
 import ErrorWatcher from "./watchers/ErrorWatcher.js";
 import DumpWatcher from "./watchers/DumpWatcher.js";
 import { resolveConfig } from "./config.js";
-import { existsSync } from "node:fs";
-import path from "node:path";
+import { readIndex, resolveClientDir } from "./client.js";
+import { join } from "node:path";
 const DEFAULT_WATCHERS = [
     RequestWatcher,
     ErrorWatcher,
@@ -39,11 +39,6 @@ export default class Telescope {
     }
     static setup(app, options) {
         const telescope = new Telescope(app, options);
-        if (telescope.config.enableClient) {
-            app.use(`/${telescope.config.path}`, telescope.config.isAuthorized);
-            telescope.setUpApi();
-            telescope.setUpStaticFiles();
-        }
         app.use((request, response, next) => {
             if (!telescope.recording) {
                 next();
@@ -67,9 +62,21 @@ export default class Telescope {
     getEnabledWatchers() {
         return this.enabledWatchers.map((watcher) => watcher.entryType);
     }
-    setUpApi() {
-        const prefix = `/${this.config.path}`;
-        this.app.post(`${prefix}/telescope-api/:entry`, (request, response) => __awaiter(this, void 0, void 0, function* () {
+    /**
+     * Returns a Router for the caller to mount wherever they like. Mount it at
+     * the same prefix given as `path` so the client's generated links resolve.
+     */
+    router() {
+        const router = Router();
+        if (!this.config.enableClient) {
+            return router;
+        }
+        router.use(this.config.isAuthorized);
+        router.post('/telescope-api/toggle-recording', (request, response) => {
+            this.recording = !this.recording;
+            response.json({ recording: this.recording });
+        });
+        router.post('/telescope-api/:entry', (request, response) => __awaiter(this, void 0, void 0, function* () {
             var _a;
             const entries = yield DB.entry(request.params.entry).get(Number((_a = request.query.take) !== null && _a !== void 0 ? _a : 50));
             response.json({
@@ -77,7 +84,16 @@ export default class Telescope {
                 status: "enabled"
             });
         }));
-        this.app.get(`${prefix}/telescope-api/:entry/:id`, (request, response) => __awaiter(this, void 0, void 0, function* () {
+        router.get('/telescope-api/entries', (request, response) => __awaiter(this, void 0, void 0, function* () {
+            response.json({
+                enabled: this.getEnabledWatchers()
+            });
+        }));
+        router.delete('/telescope-api/entries', (request, response) => __awaiter(this, void 0, void 0, function* () {
+            yield DB.truncate();
+            response.send("OK");
+        }));
+        router.get('/telescope-api/:entry/:id', (request, response) => __awaiter(this, void 0, void 0, function* () {
             var _a;
             const entry = yield DB.entry(request.params.entry).find(request.params.id);
             response.json({
@@ -85,34 +101,17 @@ export default class Telescope {
                 batch: yield DB.batch((_a = entry === null || entry === void 0 ? void 0 : entry.batchId) !== null && _a !== void 0 ? _a : '')
             });
         }));
-        this.app.delete(`${prefix}/telescope-api/entries`, (request, response) => __awaiter(this, void 0, void 0, function* () {
-            yield DB.truncate();
-            response.send("OK");
-        }));
-        this.app.get(`${prefix}/telescope-api/entries`, (request, response) => __awaiter(this, void 0, void 0, function* () {
-            response.json({
-                enabled: this.getEnabledWatchers()
-            });
-        }));
-    }
-    resolveDir() {
-        let dir = process.cwd() + '/node_modules/@damianchojnacki/telescope/dist/';
-        if (!existsSync(dir + 'index.html')) {
-            dir = path.join(process.cwd(), '/dist/');
-        }
-        return dir;
-    }
-    setUpStaticFiles() {
-        const dir = this.resolveDir();
-        const prefix = `/${this.config.path}`;
-        this.app.use(`${prefix}/app.js`, express.static(dir + "app.js"));
-        this.app.use(`${prefix}/app.css`, express.static(dir + "app.css"));
-        this.app.use(`${prefix}/app-dark.css`, express.static(dir + "app-dark.css"));
-        this.app.use(`${prefix}/favicon.ico`, express.static(dir + "favicon.ico"));
+        const dir = resolveClientDir();
+        router.use('/app.js', express.static(join(dir, 'app.js')));
+        router.use('/app.css', express.static(join(dir, 'app.css')));
+        router.use('/app-dark.css', express.static(join(dir, 'app-dark.css')));
+        router.use('/favicon.ico', express.static(join(dir, 'favicon.ico')));
+        const serveIndex = (request, response) => response.type('html').send(readIndex(this.config, this.recording));
         this.getEnabledWatchers().forEach((watcher) => {
-            this.app.use(`${prefix}/${watcher}`, express.static(dir + 'index.html'));
-            this.app.use(`${prefix}/${watcher}/:id`, express.static(dir + 'index.html'));
+            router.get(`/${watcher}`, serveIndex);
+            router.get(`/${watcher}/:id`, serveIndex);
         });
-        this.app.get(`${prefix}/`, (request, response) => response.redirect(`${prefix}/requests`));
+        router.get('/', (request, response) => response.redirect(`/${this.config.path}/requests`));
+        return router;
     }
 }
