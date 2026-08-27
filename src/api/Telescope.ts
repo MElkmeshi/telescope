@@ -8,6 +8,7 @@ import {runWithContext} from "./context.js"
 import {WatcherEntryCollectionType} from "./WatcherEntry.js"
 import ErrorWatcher from "./watchers/ErrorWatcher.js"
 import DumpWatcher from "./watchers/DumpWatcher.js"
+import QueryWatcher from "./watchers/QueryWatcher.js"
 import {ResolvedConfig, resolveConfig, TelescopeOptions} from "./config.js"
 import {readIndex, resolveClientDir} from "./client.js"
 import {join} from "node:path"
@@ -19,14 +20,18 @@ export type Watcher =
     typeof ErrorWatcher |
     typeof ClientRequestWatcher |
     typeof DumpWatcher |
-    typeof LogWatcher
+    typeof LogWatcher |
+    typeof QueryWatcher
 
 const DEFAULT_WATCHERS: Watcher[] = [
     RequestWatcher,
     ErrorWatcher,
     ClientRequestWatcher,
     DumpWatcher,
-    LogWatcher
+    LogWatcher,
+    // No capture() of its own - entries arrive via wrapPool - but it must be
+    // enabled so the queries route is registered and the nav item appears.
+    QueryWatcher
 ]
 
 export default class Telescope

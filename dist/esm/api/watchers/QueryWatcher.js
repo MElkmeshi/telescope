@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import DB from "../DB.js";
 import WatcherEntry, { WatcherEntryCollectionType, WatcherEntryDataType } from "../WatcherEntry.js";
 import { currentBatchId } from "../context.js";
+import { hostname } from "node:os";
 export class QueryWatcherEntry extends WatcherEntry {
     constructor(data, batchId) {
         super(WatcherEntryDataType.queries, data, batchId);
@@ -20,6 +21,7 @@ class QueryWatcher {
         return __awaiter(this, void 0, void 0, function* () {
             var _a, _b;
             const entry = new QueryWatcherEntry({
+                hostname: hostname(),
                 sql: query.sql,
                 bindings: (_a = query.bindings) !== null && _a !== void 0 ? _a : [],
                 time: query.time,

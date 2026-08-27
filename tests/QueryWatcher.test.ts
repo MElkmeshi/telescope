@@ -2,6 +2,7 @@ import DB from "../src/api/DB.js"
 import MemoryDriver from "../src/api/drivers/MemoryDriver.js"
 import QueryWatcher from "../src/api/watchers/QueryWatcher.js"
 import {resolveConfig} from "../src/api/config.js"
+import {hostname} from "node:os"
 
 describe('QueryWatcher', () => {
     beforeEach(async () => {
@@ -20,6 +21,7 @@ describe('QueryWatcher', () => {
 
         expect(entry.type).toEqual('query')
         expect(entry.content).toEqual({
+            hostname: hostname(),
             sql: 'select 1',
             bindings: [1],
             time: 4,

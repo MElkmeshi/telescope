@@ -16,6 +16,7 @@ import { randomUUID } from "node:crypto";
 import { runWithContext } from "./context.js";
 import ErrorWatcher from "./watchers/ErrorWatcher.js";
 import DumpWatcher from "./watchers/DumpWatcher.js";
+import QueryWatcher from "./watchers/QueryWatcher.js";
 import { resolveConfig } from "./config.js";
 import { readIndex, resolveClientDir } from "./client.js";
 import { join } from "node:path";
@@ -24,7 +25,10 @@ const DEFAULT_WATCHERS = [
     ErrorWatcher,
     ClientRequestWatcher,
     DumpWatcher,
-    LogWatcher
+    LogWatcher,
+    // No capture() of its own - entries arrive via wrapPool - but it must be
+    // enabled so the queries route is registered and the nav item appears.
+    QueryWatcher
 ];
 export default class Telescope {
     constructor(app, options) {

@@ -66,6 +66,21 @@ describe('mounting', () => {
         expect((await DB.requests().get(10)).length).toBeGreaterThan(0)
     })
 
+    it('enables the queries watcher by default so the UI can reach it', async () => {
+        const telescope = Telescope.setup(express())
+
+        expect(telescope.getEnabledWatchers()).toContain('queries')
+    })
+
+    it('serves the queries screen', async () => {
+        const app = express()
+        const telescope = Telescope.setup(app)
+
+        app.use('/telescope', telescope.router())
+
+        expect((await request(app).get('/telescope/queries')).status).toBe(200)
+    })
+
     it('toggles recording', async () => {
         const app = express()
         const telescope = Telescope.setup(app)

@@ -5,6 +5,7 @@ import { ResolvedConfig } from "../config.js";
  * `sql`, `time` and `slow`; preview.vue additionally reads `connection`.
  */
 export interface QueryWatcherData {
+    hostname: string;
     sql: string;
     bindings: unknown[];
     time: number;

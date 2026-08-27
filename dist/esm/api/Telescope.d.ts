@@ -4,9 +4,10 @@ import LogWatcher from "./watchers/LogWatcher.js";
 import RequestWatcher from "./watchers/RequestWatcher.js";
 import ErrorWatcher from "./watchers/ErrorWatcher.js";
 import DumpWatcher from "./watchers/DumpWatcher.js";
+import QueryWatcher from "./watchers/QueryWatcher.js";
 import { ResolvedConfig, TelescopeOptions } from "./config.js";
 export type { TelescopeOptions, ResolvedConfig } from "./config.js";
-export type Watcher = typeof RequestWatcher | typeof ErrorWatcher | typeof ClientRequestWatcher | typeof DumpWatcher | typeof LogWatcher;
+export type Watcher = typeof RequestWatcher | typeof ErrorWatcher | typeof ClientRequestWatcher | typeof DumpWatcher | typeof LogWatcher | typeof QueryWatcher;
 export default class Telescope {
     app: Express;
     readonly config: ResolvedConfig;

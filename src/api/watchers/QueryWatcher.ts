@@ -2,6 +2,7 @@ import DB from "../DB.js"
 import WatcherEntry, {WatcherEntryCollectionType, WatcherEntryDataType} from "../WatcherEntry.js"
 import {currentBatchId} from "../context.js"
 import {ResolvedConfig} from "../config.js"
+import {hostname} from "node:os"
 
 /**
  * Shape is fixed by the bundled client: screens/queries/index.vue reads
@@ -9,6 +10,7 @@ import {ResolvedConfig} from "../config.js"
  */
 export interface QueryWatcherData
 {
+    hostname: string
     sql: string
     bindings: unknown[]
     time: number
@@ -39,6 +41,7 @@ export default class QueryWatcher
     public static async record(query: RecordedQuery, config: ResolvedConfig): Promise<void>
     {
         const entry = new QueryWatcherEntry({
+            hostname: hostname(),
             sql: query.sql,
             bindings: query.bindings ?? [],
             time: query.time,
