@@ -133,6 +133,25 @@ export default class Telescope {
                 status: "enabled"
             });
         }));
+        /**
+         * A deliberately empty authenticated GET.
+         *
+         * The panel is a plain page — it never loads the host app's auth SDK,
+         * so nothing here keeps a short-lived session cookie alive. Session
+         * middleware typically renews an expired cookie silently, but only on
+         * a GET (Clerk's own refresh is gated on `request.method === 'GET'`),
+         * and the panel polls with POST. The expiry therefore reaches the user
+         * as a 401 that a manual reload appears to cure — a page load being
+         * the one other request shape such middleware will renew on.
+         *
+         * This route does no work at all. Its whole purpose is to be a GET the
+         * host's middleware can renew the session on, so the client can retry
+         * a 401 instead of surfacing it. It stays behind isAuthorized: it must
+         * not become an unauthenticated endpoint.
+         */
+        router.get('/telescope-api/keepalive', (request, response) => {
+            response.status(204).end();
+        });
         router.get('/telescope-api/entries', (request, response) => __awaiter(this, void 0, void 0, function* () {
             response.json({
                 enabled: this.getEnabledWatchers()

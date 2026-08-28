@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import Base from './base';
+import installSessionRecovery from './sessionRecovery';
 import axios from 'axios';
 import Routes from './routes';
 import VueRouter from 'vue-router';
@@ -16,6 +17,8 @@ window.Popper = require('popper.js').default;
 moment.tz.setDefault(Telescope.timezone);
 
 window.Telescope.basePath = '/' + window.Telescope.path;
+
+installSessionRecovery(axios, () => window.Telescope.basePath);
 
 let routerBasePath = window.Telescope.basePath + '/';
 
