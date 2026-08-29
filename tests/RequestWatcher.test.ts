@@ -301,6 +301,106 @@ describe('RequestWatcher', () => {
         expect(entry.content.response_headers['x-api-key']).toEqual('********')
     })
 
+    it('saves request headers', async () => {
+        const app = express()
+
+        Telescope.setup(app)
+
+        app.get('/', (request, response) => response.send('Hello world'))
+
+        await request(app)
+            .get('/')
+            .set('x-custom', 'value')
+
+        const entry = (await DB.requests().get())[0]
+
+        expect(entry.content.headers['x-custom']).toEqual('value')
+    })
+
+    it('hides the authorization request header', async () => {
+        const app = express()
+
+        Telescope.setup(app)
+
+        app.get('/', (request, response) => response.send('Hello world'))
+
+        await request(app)
+            .get('/')
+            .set('Authorization', 'Bearer super-secret-jwt')
+
+        const entry = (await DB.requests().get())[0]
+
+        // A bearer token is a live credential: anyone reading the panel could
+        // replay it as that user. Masked regardless of paramsToHide.
+        expect(entry.content.headers['authorization']).toEqual('********')
+        expect(JSON.stringify(entry.content.headers)).not.toContain('super-secret-jwt')
+    })
+
+    it('hides the cookie request header', async () => {
+        const app = express()
+
+        Telescope.setup(app)
+
+        app.get('/', (request, response) => response.send('Hello world'))
+
+        await request(app)
+            .get('/')
+            .set('Cookie', 'session=super-secret-session')
+
+        const entry = (await DB.requests().get())[0]
+
+        // The mirror of set-cookie on the response: a session cookie is a
+        // credential by definition, whichever direction it travels in.
+        expect(entry.content.headers['cookie']).toEqual('********')
+        expect(JSON.stringify(entry.content.headers)).not.toContain('super-secret-session')
+    })
+
+    it('hides configured params in request headers', async () => {
+        const app = express()
+
+        Telescope.setup(app, {
+            paramsToHide: ['x-api-key']
+        })
+
+        app.get('/', (request, response) => response.send('Hello world'))
+
+        await request(app)
+            .get('/')
+            .set('X-Api-Key', 'secret-key')
+
+        const entry = (await DB.requests().get())[0]
+
+        // Node lower-cases incoming header names, so the match must be
+        // case-insensitive on both sides.
+        expect(entry.content.headers['x-api-key']).toEqual('********')
+    })
+
+    it('does not mutate the headers the application sees', async () => {
+        const app = express()
+
+        Telescope.setup(app)
+
+        let seen: string | undefined
+
+        app.get('/', (request, response) => {
+            // Runs before save(), but the masking must not reach back into the
+            // live request object that later middleware and handlers read.
+            response.send('Hello world')
+
+            seen = request.headers.authorization
+        })
+
+        await request(app)
+            .get('/')
+            .set('Authorization', 'Bearer super-secret-jwt')
+
+        expect(seen).toEqual('Bearer super-secret-jwt')
+
+        const entry = (await DB.requests().get())[0]
+
+        expect(entry.content.headers['authorization']).toEqual('********')
+    })
+
     async function expectCorrectRequestsLogged(app: Express){
         app.get('/', (request, response) => response.send('Hello World'))
         app.get('/admin/products', (request, response) => response.send('Hello World'))

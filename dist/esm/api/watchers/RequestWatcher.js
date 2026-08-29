@@ -69,6 +69,34 @@ class RequestWatcher {
         return this.request.body;
     }
     /**
+     * Request headers, with credential-bearing ones masked.
+     *
+     * `authorization` and `cookie` are masked unconditionally, for the same
+     * reason `set-cookie` is on the way out: both carry a live credential, and
+     * this panel renders what it stores in plain text. A bearer token or
+     * session cookie read off the panel can be replayed as that user for the
+     * rest of its lifetime, so whoever may VIEW traffic would otherwise also be
+     * able to BECOME anyone in it. Everything else is matched against the
+     * configured paramsToHide. Node lower-cases incoming header names, so the
+     * comparison is lower-cased on both sides.
+     *
+     * Unlike `response.getHeaders()`, `request.headers` is the live object the
+     * application reads — so this copies before masking. Masking in place would
+     * blank the Authorization header for any handler that runs after us.
+     */
+    getRequestHeaders() {
+        const hidden = this.config.paramsToHide
+            .map((param) => param.toLowerCase())
+            .concat('authorization', 'cookie');
+        const headers = Object.assign({}, this.request.headers);
+        Object.keys(headers).forEach((key) => {
+            if (hidden.includes(key.toLowerCase())) {
+                headers[key] = '********';
+            }
+        });
+        return headers;
+    }
+    /**
      * Response headers, with credential-bearing ones masked.
      *
      * `set-cookie` is masked unconditionally: it is a session credential by
@@ -187,7 +215,7 @@ class RequestWatcher {
                 ip_address: this.request.ip,
                 memory: this.getMemoryUsage(),
                 payload: this.getPayload(),
-                headers: this.request.headers,
+                headers: this.getRequestHeaders(),
                 response_headers: this.getResponseHeaders(),
                 response: this.responseBody,
                 user,
